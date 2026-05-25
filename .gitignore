@@ -1,0 +1,27 @@
+# Environment
+.env
+
+# Runtime data (reset on deploy anyway)
+users_db.json
+sites_db.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
