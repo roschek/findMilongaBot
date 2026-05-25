@@ -1,6 +1,9 @@
 # Environment
 .env
 
+# Local dev notes
+NOTES.md
+
 # Runtime data (reset on deploy anyway)
 users_db.json
 sites_db.json
