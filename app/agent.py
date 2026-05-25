@@ -114,6 +114,9 @@ async def _search_phase(client: genai.Client, city: str, date: str) -> tuple[lis
     return sources_found, sources_found[:10]
 
 
+_SCHEDULE_SUBPAGES = ["events/", "calendar/", "milongas/", "schedule/", "tango/"]
+
+
 def _probe_ics_urls(web_urls: list[str], existing_ics: list[str]) -> list[str]:
     """Generate candidate ICS feed URLs for WordPress-based event sites."""
     probes: list[str] = []
@@ -130,6 +133,21 @@ def _probe_ics_urls(web_urls: list[str], existing_ics: list[str]) -> list[str]:
     return probes
 
 
+def _subpage_urls(web_urls: list[str]) -> list[str]:
+    """For root-domain URLs, generate schedule sub-page variants to try."""
+    extras: list[str] = []
+    for url in web_urls:
+        parsed = urlparse(url)
+        # Only probe if the URL has no meaningful path (root or single slash)
+        if parsed.path.strip("/") == "":
+            base = url.rstrip("/")
+            for sub in _SCHEDULE_SUBPAGES:
+                candidate = f"{base}/{sub}"
+                if candidate not in web_urls and candidate not in extras:
+                    extras.append(candidate)
+    return extras
+
+
 async def _fetch_pages(
     city: str, web_urls: list[str], ics_urls: list[str], dates: list[str]
 ) -> tuple[list[str], list[str], list[str]]:
@@ -137,11 +155,15 @@ async def _fetch_pages(
     Fetch web pages and ICS feeds in parallel.
     Returns (page_contents, ics_contents, sources_checked).
     """
+    # Also fetch schedule sub-pages for root-domain URLs
+    extra_web = _subpage_urls(web_urls)
+    all_web = list(web_urls) + extra_web
+
     # Probe WordPress ICS endpoints for web URLs
     ics_probes = _probe_ics_urls(web_urls, ics_urls)
     all_ics = list(ics_urls) + ics_probes
 
-    page_task = asyncio.gather(*[read_website(u) for u in web_urls])
+    page_task = asyncio.gather(*[read_website(u) for u in all_web])
     ics_task = asyncio.gather(*[read_ics(u, dates) for u in all_ics])
     page_contents, ics_results = await asyncio.gather(page_task, ics_task)
     page_contents, ics_results = list(page_contents), list(ics_results)
@@ -157,9 +179,11 @@ async def _fetch_pages(
     ics_urls = valid_ics
     ics_results = valid_ics_results
 
-    sources_checked = list(web_urls)
+    sources_checked = list(all_web)
 
-    for url, content in zip(web_urls, page_contents):
+    for url, content in zip(all_web, page_contents):
+        if url in extra_web:
+            continue  # sub-pages don't affect failure counters for the parent site
         if content.startswith("ERROR"):
             site_db.mark_failure(city, url)
         else:
@@ -205,7 +229,7 @@ async def _extract_events(
     """Single LLM call. Returns (events, uncertainties, schedule_sources)."""
     pages_text = ""
     for url, content in zip(web_urls, page_contents):
-        pages_text += f"\n\n=== SOURCE: {url} ===\n{content[:5000]}"
+        pages_text += f"\n\n=== SOURCE: {url} ===\n{content[:8000]}"
     for url, ics in zip(ics_urls, ics_contents):
         pages_text += f"\n\n=== ICS CALENDAR: {url} ===\n{ics}"
 
@@ -286,7 +310,7 @@ async def _run_with_urls(
             all_ics_urls.append(url)
 
     events, uncertainties, schedule_sources = await _extract_events(
-        client, city, dates, web_urls, page_contents, all_ics_urls, ics_contents
+        client, city, dates, sources_checked, page_contents, all_ics_urls, ics_contents
     )
     return events, uncertainties, sources_checked, all_ics_urls, ics_contents, schedule_sources
 
