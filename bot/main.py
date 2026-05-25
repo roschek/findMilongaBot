@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import time
 from collections import defaultdict
 from datetime import date
 from urllib.parse import urlparse
@@ -115,6 +116,7 @@ def _format_events(events, city: str, sources_checked: list[str]) -> str:
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     lang = get_lang(getattr(update.effective_user, "language_code", None))
     context.user_data["lang"] = lang
+    logging.info("start user=%d lang=%s", update.effective_user.id, lang)
     await update.message.reply_text(
         t(lang, "welcome"),
         parse_mode="HTML",
@@ -219,14 +221,19 @@ async def handle_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if context.user_data.get("searching"):
         return
 
-    allowed, remaining = check_and_increment(update.effective_user.id)
+    user_id = update.effective_user.id
+    allowed, remaining = check_and_increment(user_id)
     if not allowed:
+        logging.info("rate_limit user=%d city=%r", user_id, city)
         await update.message.reply_text(
             t(lang, "rate_limit").format(limit=FREE_DAILY_LIMIT),
             parse_mode="HTML",
             reply_markup=_donate_kb(lang),
         )
         return
+
+    logging.info("search_start user=%d city=%r lang=%s", user_id, city, lang)
+    t0 = time.monotonic()
 
     context.user_data["searching"] = True
     status = await update.message.reply_text(
@@ -240,22 +247,28 @@ async def handle_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             timeout=270,
         )
     except asyncio.TimeoutError:
+        logging.warning("search_timeout user=%d city=%r elapsed=%.0fs", user_id, city, time.monotonic() - t0)
         await status.edit_text(t(lang, "error"), parse_mode="HTML")
         context.user_data["searching"] = False
         return
     except Exception:
-        logging.exception("Agent error for city=%s", city)
+        logging.exception("search_error user=%d city=%r elapsed=%.0fs", user_id, city, time.monotonic() - t0)
         await status.edit_text(t(lang, "error"), parse_mode="HTML")
         context.user_data["searching"] = False
         return
 
+    elapsed = time.monotonic() - t0
     context.user_data["searching"] = False
 
     if not result.city_found:
+        logging.info("search_done user=%d city=%r result=not_found elapsed=%.0fs", user_id, city, elapsed)
         text = t(lang, "city_not_found").format(city=city)
     elif result.events:
+        logging.info("search_done user=%d city=%r result=ok events=%d elapsed=%.0fs",
+                     user_id, result.city, len(result.events), elapsed)
         text = _format_events(result.events, result.city, result.sources_checked)
     else:
+        logging.info("search_done user=%d city=%r result=no_events elapsed=%.0fs", user_id, result.city, elapsed)
         text = t(lang, "no_events").format(city=result.city)
         text += _sources_line(result.sources_checked)
 
@@ -277,6 +290,8 @@ async def pre_checkout(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def successful_payment(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     lang = _lang(context, update.effective_user)
+    stars = update.message.successful_payment.total_amount
+    logging.info("donation user=%d stars=%d", update.effective_user.id, stars)
     await update.message.reply_text(
         t(lang, "donate_thanks"), parse_mode="HTML", reply_markup=_main_menu_kb(lang)
     )
