@@ -132,7 +132,7 @@ def _probe_ics_urls(web_urls: list[str], existing_ics: list[str]) -> list[str]:
 
 async def _fetch_pages(
     city: str, web_urls: list[str], ics_urls: list[str], dates: list[str]
-) -> tuple[list[str], list[str], list[str]]:
+) -> tuple[list[str], list[str], list[str], list[str]]:
     """
     Fetch web pages and ICS feeds in parallel.
     Returns (page_contents, ics_contents, sources_checked).
@@ -146,6 +146,24 @@ async def _fetch_pages(
     page_contents, ics_results = await asyncio.gather(page_task, ics_task)
     page_contents, ics_results = list(page_contents), list(ics_results)
 
+    # For pages with thin content, also try /events/ sub-page (max 3 probes)
+    extra_web: list[str] = []
+    for url, content in zip(web_urls, page_contents):
+        if len(extra_web) >= 3:
+            break
+        parsed = urlparse(url)
+        if parsed.path.strip("/") == "" and (content.startswith("ERROR") or len(content) < 1500):
+            candidate = url.rstrip("/") + "/events/"
+            if candidate not in web_urls and candidate not in extra_web:
+                extra_web.append(candidate)
+
+    extra_contents: list[str] = []
+    if extra_web:
+        extra_contents = list(await asyncio.gather(*[read_website(u) for u in extra_web]))
+
+    all_web = list(web_urls) + extra_web
+    page_contents = page_contents + extra_contents
+
     # Drop probes that errored (not real feeds)
     valid_ics: list[str] = []
     valid_ics_results: list[str] = []
@@ -157,7 +175,7 @@ async def _fetch_pages(
     ics_urls = valid_ics
     ics_results = valid_ics_results
 
-    sources_checked = list(web_urls)
+    sources_checked = list(all_web)
 
     for url, content in zip(web_urls, page_contents):
         if content.startswith("ERROR"):
@@ -190,7 +208,7 @@ async def _fetch_pages(
         else:
             site_db.mark_ics_success(city, url)
 
-    return page_contents, ics_results, sources_checked
+    return page_contents, ics_results, sources_checked, all_web
 
 
 async def _extract_events(
@@ -205,7 +223,7 @@ async def _extract_events(
     """Single LLM call. Returns (events, uncertainties, schedule_sources)."""
     pages_text = ""
     for url, content in zip(web_urls, page_contents):
-        pages_text += f"\n\n=== SOURCE: {url} ===\n{content[:5000]}"
+        pages_text += f"\n\n=== SOURCE: {url} ===\n{content[:8000]}"
     for url, ics in zip(ics_urls, ics_contents):
         pages_text += f"\n\n=== ICS CALENDAR: {url} ===\n{ics}"
 
@@ -278,7 +296,7 @@ async def _run_with_urls(
     known_ics: list[str],
 ) -> tuple[list[MilongaEvent], list[str], list[str], list[str], list[str], list[str]]:
     """Returns (events, uncertainties, sources_checked, all_ics_urls, ics_contents, schedule_sources)."""
-    page_contents, ics_contents, sources_checked = await _fetch_pages(city, web_urls, known_ics, dates)
+    page_contents, ics_contents, sources_checked, all_web = await _fetch_pages(city, web_urls, known_ics, dates)
 
     all_ics_urls = list(known_ics)
     for url in sources_checked:
@@ -286,7 +304,7 @@ async def _run_with_urls(
             all_ics_urls.append(url)
 
     events, uncertainties, schedule_sources = await _extract_events(
-        client, city, dates, web_urls, page_contents, all_ics_urls, ics_contents
+        client, city, dates, all_web, page_contents, all_ics_urls, ics_contents
     )
     return events, uncertainties, sources_checked, all_ics_urls, ics_contents, schedule_sources
 
