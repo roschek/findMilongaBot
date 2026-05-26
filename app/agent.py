@@ -100,7 +100,7 @@ async def _search_phase(client: genai.Client, city: str, date: str) -> tuple[lis
     sources_found: list[str] = []
 
     if getattr(candidate, "grounding_metadata", None):
-        for chunk in getattr(candidate.grounding_metadata, "grounding_chunks", []):
+        for chunk in (getattr(candidate.grounding_metadata, "grounding_chunks", None) or []):
             web = getattr(chunk, "web", None)
             if web and getattr(web, "uri", None) and web.uri not in sources_found:
                 sources_found.append(web.uri)
