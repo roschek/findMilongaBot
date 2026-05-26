@@ -62,11 +62,14 @@ async def _normalize_city(client: genai.Client, city_input: str) -> tuple[str, b
     Uses Gemini to canonicalize city names across languages and spellings.
     """
     response = await client.aio.models.generate_content(
-        model="gemini-3.5-flash",
+        model="gemini-2.5-flash-lite",
         contents=(
             f"What is the canonical English name of the city or town '{city_input}'?\n"
-            f"If it is a real place, reply with just the city name in English (e.g. 'Moscow', 'Tel Aviv', 'Tbilisi').\n"
-            f"If it is NOT a real city or place name, reply with exactly: UNKNOWN"
+            f"If it is a real place but small (under 300k population or unlikely to have an active tango scene), "
+            f"return the nearest large city instead (e.g. 'Petah Tikva' → 'Tel Aviv', 'Mytishchi' → 'Moscow').\n"
+            f"If it is a real major city, reply with just the canonical English name (e.g. 'Moscow', 'Tel Aviv', 'Tbilisi').\n"
+            f"If it is NOT a real place name at all, reply with exactly: UNKNOWN\n"
+            f"Reply with just the city name, nothing else."
         ),
         config=types.GenerateContentConfig(temperature=0),
     )
@@ -79,7 +82,7 @@ async def _normalize_city(client: genai.Client, city_input: str) -> tuple[str, b
 async def _search_phase(client: genai.Client, city: str, date: str) -> tuple[list[str], list[str]]:
     """Use Gemini + Google Search to find relevant URLs."""
     response = await client.aio.models.generate_content(
-        model="gemini-3.5-flash",
+        model="gemini-2.5-flash-lite",
         contents=(
             f"Find 10 URLs of websites with tango milonga and practica schedules and calendars "
             f"for {city}. Include local tango association sites, event calendars, and tango portals. "
@@ -232,7 +235,7 @@ async def _extract_events(
     ]
 
     response = await client.aio.models.generate_content(
-        model="gemini-3.5-flash",
+        model="gemini-2.5-flash-lite",
         contents=(
             f"City: {city}\n"
             f"Dates: {json.dumps(dates)}\n"

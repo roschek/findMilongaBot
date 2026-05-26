@@ -52,6 +52,7 @@ MSG: dict[str, dict[str, str]] = {
         "status_premium": "⭐ <b>Status:</b> Premium until <b>{until}</b>. Unlimited searches.",
         "status_free": "🔍 <b>Status:</b> Free plan — <b>{remaining}</b> of {limit} searches left today.",
         "searches_left": "\n<i>({remaining} free search(es) left today)</i>",
+        "disclaimer": "ℹ️ <i>AI-powered bot — info may be incomplete. Always verify with the organizer.</i>",
         "error": "⚠️ Something went wrong. Please try again.",
     },
     "ru": {
@@ -101,6 +102,7 @@ MSG: dict[str, dict[str, str]] = {
         "status_premium": "⭐ <b>Статус:</b> Премиум до <b>{until}</b>. Безлимитный поиск.",
         "status_free": "🔍 <b>Статус:</b> Бесплатный план — осталось <b>{remaining}</b> из {limit} поисков сегодня.",
         "searches_left": "\n<i>(осталось {remaining} поиск(а) сегодня)</i>",
+        "disclaimer": "ℹ️ <i>Бот на основе ИИ — информация может быть неполной. Уточняйте у организаторов.</i>",
         "error": "⚠️ Что-то пошло не так. Попробуйте ещё раз.",
     },
     "he": {
@@ -150,6 +152,7 @@ MSG: dict[str, dict[str, str]] = {
         "status_premium": "⭐ <b>סטטוס:</b> פרימיום עד <b>{until}</b>. חיפוש ללא הגבלה.",
         "status_free": "🔍 <b>סטטוס:</b> תוכנית חינמית — נותרו <b>{remaining}</b> מתוך {limit} חיפושים היום.",
         "searches_left": "\n<i>(נותרו {remaining} חיפוש/ים היום)</i>",
+        "disclaimer": "ℹ️ <i>בוט מבוסס בינה מלאכותית — המידע עשוי להיות חלקי. תמיד בדקו עם המארגן.</i>",
         "error": "⚠️ משהו השתבש. נסה שוב.",
     },
     "es": {
@@ -199,6 +202,7 @@ MSG: dict[str, dict[str, str]] = {
         "status_premium": "⭐ <b>Estado:</b> Premium hasta <b>{until}</b>. Búsquedas ilimitadas.",
         "status_free": "🔍 <b>Estado:</b> Plan gratuito — quedan <b>{remaining}</b> de {limit} búsquedas hoy.",
         "searches_left": "\n<i>(quedan {remaining} búsqueda(s) hoy)</i>",
+        "disclaimer": "ℹ️ <i>Bot de IA — la información puede ser incompleta. Verifica siempre con el organizador.</i>",
         "error": "⚠️ Algo salió mal. Inténtalo de nuevo.",
     },
 }

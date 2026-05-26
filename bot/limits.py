@@ -70,6 +70,16 @@ def get_status(user_id: int) -> dict:
     return {"premium": is_premium, "premium_until": premium_until, "remaining": remaining}
 
 
+def get_search_stats() -> dict:
+    """Returns basic usage stats for the admin command."""
+    data = _load()
+    today = str(date.today())
+    total_users = len(data)
+    active_today = sum(1 for u in data.values() if u.get("date") == today)
+    searches_today = sum(u.get("count", 0) for u in data.values() if u.get("date") == today)
+    return {"total_users": total_users, "active_today": active_today, "searches_today": searches_today}
+
+
 def grant_premium(user_id: int, days: int = PREMIUM_DAYS) -> str:
     """Grant premium for `days`. Stacks on top of existing premium. Returns expiry date string."""
     data = _load()

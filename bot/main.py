@@ -29,9 +29,10 @@ logging.basicConfig(level=logging.INFO)
 
 from app.agent import run_milonga_agent
 from bot.messages import get_lang, t
-from bot.limits import check_and_increment, get_status, FREE_DAILY_LIMIT
+from bot.limits import check_and_increment, get_status, get_search_stats, FREE_DAILY_LIMIT
 
 DONATE_TIERS = [50, 250, 500]
+ADMIN_ID = 847615855
 
 
 def _lang(context: ContextTypes.DEFAULT_TYPE, user) -> str:
@@ -133,10 +134,23 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     await update.message.reply_text(text, parse_mode="HTML", reply_markup=_main_menu_kb(lang))
 
 
+async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.effective_user.id != ADMIN_ID:
+        return
+    stats = get_search_stats()
+    await update.message.reply_text(
+        f"📊 <b>Stats</b>\n\n"
+        f"Total users: <b>{stats['total_users']}</b>\n"
+        f"Active today: <b>{stats['active_today']}</b>\n"
+        f"Searches today: <b>{stats['searches_today']}</b>",
+        parse_mode="HTML",
+    )
+
+
 async def cb_find(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.callback_query.answer()
     lang = _lang(context, update.effective_user)
-    await update.callback_query.edit_message_text(
+    await update.effective_chat.send_message(
         t(lang, "ask_city"),
         parse_mode="HTML",
         reply_markup=_back_kb(lang),
@@ -145,11 +159,7 @@ async def cb_find(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def cb_back(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.callback_query.answer()
-    lang = _lang(context, update.effective_user)
-    await update.callback_query.edit_message_text(
-        t(lang, "menu_prompt"),
-        reply_markup=_main_menu_kb(lang),
-    )
+    await update.callback_query.message.delete()
 
 
 async def cb_donate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -276,7 +286,10 @@ async def handle_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if 0 < remaining <= 2:
         text += t(lang, "searches_left").format(remaining=remaining)
 
-    await status.edit_text(
+    text += "\n\n" + t(lang, "disclaimer")
+
+    await status.delete()
+    await update.message.reply_text(
         text,
         parse_mode="HTML",
         reply_markup=_main_menu_kb(lang),
@@ -302,6 +315,7 @@ def main() -> None:
 
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("status", cmd_status))
+    app.add_handler(CommandHandler("stats", cmd_stats))
     app.add_handler(CallbackQueryHandler(cb_find, pattern="^find$"))
     app.add_handler(CallbackQueryHandler(cb_back, pattern="^back$"))
     app.add_handler(CallbackQueryHandler(cb_donate, pattern="^donate$"))
