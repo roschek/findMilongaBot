@@ -82,9 +82,9 @@ async def _normalize_city(client: genai.Client, city_input: str) -> tuple[str, b
 async def _search_phase(client: genai.Client, city: str, date: str) -> tuple[list[str], list[str]]:
     """Use Gemini + Google Search to find relevant URLs."""
     response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash-lite",
+        model="gemini-2.5-flash",
         contents=(
-            f"Find 10 URLs of websites with tango milonga and practica schedules and calendars "
+            f"Find 15 URLs of websites with tango milonga and practica schedules and calendars "
             f"for {city}. Include local tango association sites, event calendars, and tango portals. "
             f"Prefer direct links to schedule or calendar pages (e.g. /events, /calendar, /milongas) "
             f"rather than just homepages. Current date: {date}. "
@@ -114,7 +114,7 @@ async def _search_phase(client: genai.Client, city: str, date: str) -> tuple[lis
     except Exception:
         pass
 
-    return sources_found, sources_found[:10]
+    return sources_found, sources_found[:15]
 
 
 def _probe_ics_urls(web_urls: list[str], existing_ics: list[str]) -> list[str]:
@@ -367,13 +367,13 @@ async def run_milonga_agent(city: str, date: str, days_ahead: int = 3) -> Milong
             # Known sites gave nothing — re-search
             fresh_found, candidate_urls = await _search_phase(client, canonical_city, date)
             sources_found = list(dict.fromkeys(web_known + fresh_found))
-            search_web = [u for u in candidate_urls[:8] if ".ics" not in u]
+            search_web = [u for u in candidate_urls[:12] if ".ics" not in u]
             events, uncertainties, sources_checked, all_ics_urls, ics_contents, schedule_sources = \
                 await _run_with_urls(client, canonical_city, dates, search_web, ics_known)
             _save_sites(canonical_city, events, schedule_sources, all_ics_urls, ics_contents)
     else:
         sources_found, candidate_urls = await _search_phase(client, canonical_city, date)
-        search_web = [u for u in candidate_urls[:8] if ".ics" not in u]
+        search_web = [u for u in candidate_urls[:12] if ".ics" not in u]
         events, uncertainties, sources_checked, all_ics_urls, ics_contents, schedule_sources = \
             await _run_with_urls(client, canonical_city, dates, search_web, [])
         _save_sites(canonical_city, events, schedule_sources, all_ics_urls, ics_contents)
