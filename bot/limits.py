@@ -1,13 +1,28 @@
 import json
+import os
 from datetime import date, timedelta
 from pathlib import Path
 
 _DB_PATH = Path(__file__).parent.parent / "users_db.json"
 FREE_DAILY_LIMIT = 20
 PREMIUM_DAYS = 30
+_REDIS_KEY = "users_db"
+
+
+def _redis():
+    url = os.environ.get("UPSTASH_REDIS_REST_URL")
+    token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
+    if url and token:
+        from upstash_redis import Redis
+        return Redis(url=url, token=token)
+    return None
 
 
 def _load() -> dict:
+    r = _redis()
+    if r:
+        val = r.get(_REDIS_KEY)
+        return json.loads(val) if val else {}
     if _DB_PATH.exists():
         try:
             return json.loads(_DB_PATH.read_text(encoding="utf-8"))
@@ -17,7 +32,11 @@ def _load() -> dict:
 
 
 def _save(data: dict) -> None:
-    _DB_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    r = _redis()
+    if r:
+        r.set(_REDIS_KEY, json.dumps(data, ensure_ascii=False))
+    else:
+        _DB_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def _entry(data: dict, user_id: int) -> dict:

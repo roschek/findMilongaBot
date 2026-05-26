@@ -235,7 +235,7 @@ async def _extract_events(
     ]
 
     response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash",
         contents=(
             f"City: {city}\n"
             f"Dates: {json.dumps(dates)}\n"
