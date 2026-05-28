@@ -59,6 +59,10 @@ async def read_website(url: str) -> str:
         soup = BeautifulSoup(raw_html, "html.parser")
         for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
             tag.decompose()
+        for tag in soup.find_all(True, attrs={"onclick": True}):
+            m = re.search(r"'(\d{4}-\d{2}-\d{2})'", tag.get("onclick", ""))
+            if m:
+                tag.string = f"[{m.group(1)}] {tag.get_text(strip=True)}"
         text = soup.get_text(separator="\n", strip=True)[:10000]
         if calendar_links:
             text += "\n\nCALENDAR_FEEDS_FOUND:\n" + "\n".join(calendar_links)
