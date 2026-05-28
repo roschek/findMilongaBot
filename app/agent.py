@@ -16,7 +16,7 @@ def _get_redis():
     url = os.environ.get("UPSTASH_REDIS_REST_URL")
     token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
     if url and token:
-        from upstash_redis import Redis
+        from upstash_redis.asyncio import Redis
         return Redis(url=url, token=token)
     return None
 
@@ -129,7 +129,7 @@ async def _search_phase(client: genai.Client, city: str, date: str) -> tuple[lis
     except Exception:
         pass
 
-    return sources_found, sources_found[:15]
+    return sources_found
 
 
 def _probe_ics_urls(web_urls: list[str], existing_ics: list[str]) -> list[str]:
@@ -153,7 +153,7 @@ async def _fetch_pages(
 ) -> tuple[list[str], list[str], list[str], list[str]]:
     """
     Fetch web pages and ICS feeds in parallel.
-    Returns (page_contents, ics_contents, sources_checked).
+    Returns (page_contents, ics_contents, sources_checked, all_web).
     """
     # Probe WordPress ICS endpoints for web URLs
     ics_probes = _probe_ics_urls(web_urls, ics_urls)
@@ -197,9 +197,9 @@ async def _fetch_pages(
 
     for url, content in zip(web_urls, page_contents):
         if content.startswith("ERROR"):
-            site_db.mark_failure(city, url)
+            await site_db.mark_failure(city, url)
         else:
-            site_db.mark_success(city, url)
+            await site_db.mark_success(city, url)
 
     extra_ics_urls: list[str] = []
     for content in page_contents:
@@ -222,9 +222,9 @@ async def _fetch_pages(
     for url, result in zip(ics_urls, ics_results):
         sources_checked.append(url)
         if result.startswith("ERROR"):
-            site_db.mark_ics_failure(city, url)
+            await site_db.mark_ics_failure(city, url)
         else:
-            site_db.mark_ics_success(city, url)
+            await site_db.mark_ics_success(city, url)
 
     return page_contents, ics_results, sources_checked, all_web
 
@@ -327,8 +327,8 @@ async def _run_with_urls(
     return events, uncertainties, sources_checked, all_ics_urls, ics_contents, schedule_sources
 
 
-def _save_sites(city: str, events: list[MilongaEvent], schedule_sources: list[str],
-                ics_urls: list[str], ics_contents: list[str]) -> None:
+async def _save_sites(city: str, events: list[MilongaEvent], schedule_sources: list[str],
+                      ics_urls: list[str], ics_contents: list[str]) -> None:
     """Save all schedule sources to DB, not just event source_urls."""
     # Web URLs: from LLM-identified schedule_sources + event source_urls
     web_urls = list(dict.fromkeys(
@@ -339,7 +339,7 @@ def _save_sites(city: str, events: list[MilongaEvent], schedule_sources: list[st
 
     ics = _productive_ics(ics_urls, ics_contents)
     if web_urls or ics:
-        site_db.save_productive_sites(city, web_urls, ics)
+        await site_db.save_productive_sites(city, web_urls, ics)
 
 
 async def run_milonga_agent(city: str, date: str, days_ahead: int = 3) -> MilongaResponse:
@@ -352,15 +352,18 @@ async def run_milonga_agent(city: str, date: str, days_ahead: int = 3) -> Milong
     # Normalize city name and validate it exists
     canonical_city, city_found = await _normalize_city(client, city)
 
-    # Check Redis cache before doing any work
+    # Cache key requires canonical city, so normalization must happen first
     r = _get_redis()
     cache_key = f"results:{canonical_city.lower()}:{date}"
     if r and city_found:
-        cached = r.get(cache_key)
-        if cached:
-            import logging
-            logging.info("cache_hit city=%r date=%s", canonical_city, date)
-            return MilongaResponse.model_validate_json(cached)
+        try:
+            cached = await r.get(cache_key)
+            if cached:
+                import logging
+                logging.info("cache_hit city=%r date=%s", canonical_city, date)
+                return MilongaResponse.model_validate_json(cached)
+        except Exception:
+            pass
     if not city_found:
         return MilongaResponse(
             city=city,
@@ -372,8 +375,8 @@ async def run_milonga_agent(city: str, date: str, days_ahead: int = 3) -> Milong
             city_found=False,
         )
 
-    known_sites = site_db.get_schedule_sites(canonical_city)
-    known_ics = site_db.get_ics_feeds(canonical_city)
+    known_sites = await site_db.get_schedule_sites(canonical_city)
+    known_ics = await site_db.get_ics_feeds(canonical_city)
 
     if known_sites:
         web_known = [u for u in known_sites if ".ics" not in u and "calendar.google.com/calendar/ical" not in u]
@@ -386,22 +389,22 @@ async def run_milonga_agent(city: str, date: str, days_ahead: int = 3) -> Milong
             await _run_with_urls(client, canonical_city, dates, web_known, ics_known)
         sources_found = web_known
 
-        _save_sites(canonical_city, events, schedule_sources, all_ics_urls, ics_contents)
+        await _save_sites(canonical_city, events, schedule_sources, all_ics_urls, ics_contents)
 
         if not events:
             # Known sites gave nothing — re-search
-            fresh_found, candidate_urls = await _search_phase(client, canonical_city, date)
+            fresh_found = await _search_phase(client, canonical_city, date)
             sources_found = list(dict.fromkeys(web_known + fresh_found))
-            search_web = [u for u in candidate_urls[:12] if ".ics" not in u]
+            search_web = [u for u in fresh_found[:12] if ".ics" not in u]
             events, uncertainties, sources_checked, all_ics_urls, ics_contents, schedule_sources = \
                 await _run_with_urls(client, canonical_city, dates, search_web, ics_known)
-            _save_sites(canonical_city, events, schedule_sources, all_ics_urls, ics_contents)
+            await _save_sites(canonical_city, events, schedule_sources, all_ics_urls, ics_contents)
     else:
-        sources_found, candidate_urls = await _search_phase(client, canonical_city, date)
-        search_web = [u for u in candidate_urls[:12] if ".ics" not in u]
+        sources_found = await _search_phase(client, canonical_city, date)
+        search_web = [u for u in sources_found[:12] if ".ics" not in u]
         events, uncertainties, sources_checked, all_ics_urls, ics_contents, schedule_sources = \
             await _run_with_urls(client, canonical_city, dates, search_web, [])
-        _save_sites(canonical_city, events, schedule_sources, all_ics_urls, ics_contents)
+        await _save_sites(canonical_city, events, schedule_sources, all_ics_urls, ics_contents)
 
     result = MilongaResponse(
         city=canonical_city,
@@ -413,5 +416,8 @@ async def run_milonga_agent(city: str, date: str, days_ahead: int = 3) -> Milong
         city_found=True,
     )
     if r:
-        r.set(cache_key, result.model_dump_json(), ex=_ttl_until_midnight())
+        try:
+            await r.set(cache_key, result.model_dump_json(), ex=_ttl_until_midnight())
+        except Exception:
+            pass
     return result
