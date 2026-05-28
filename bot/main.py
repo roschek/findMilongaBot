@@ -127,7 +127,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     lang = _lang(context, update.effective_user)
-    status = get_status(update.effective_user.id)
+    status = await get_status(update.effective_user.id)
     text = t(lang, "status_free").format(
         remaining=status["remaining"], limit=FREE_DAILY_LIMIT
     )
@@ -137,7 +137,7 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_user.id != ADMIN_ID:
         return
-    stats = get_search_stats()
+    stats = await get_search_stats()
     await update.message.reply_text(
         f"📊 <b>Stats</b>\n\n"
         f"Total users: <b>{stats['total_users']}</b>\n"
@@ -232,7 +232,7 @@ async def handle_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
 
     user_id = update.effective_user.id
-    allowed, remaining = check_and_increment(user_id)
+    allowed, remaining = await check_and_increment(user_id)
     if not allowed:
         logging.info("rate_limit user=%d city=%r", user_id, city)
         await update.message.reply_text(
