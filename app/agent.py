@@ -1,7 +1,7 @@
 import json
 import asyncio
 import os
-from datetime import date as date_type, timedelta
+from datetime import date as date_type, datetime, timedelta, timezone
 from urllib.parse import urlparse
 
 from google import genai
@@ -10,6 +10,21 @@ from google.genai import types
 from .tools import read_website, read_ics
 from .models import MilongaEvent, MilongaResponse
 from . import site_db
+
+
+def _get_redis():
+    url = os.environ.get("UPSTASH_REDIS_REST_URL")
+    token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
+    if url and token:
+        from upstash_redis import Redis
+        return Redis(url=url, token=token)
+    return None
+
+
+def _ttl_until_midnight() -> int:
+    now = datetime.now(timezone.utc)
+    midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    return max(300, int((midnight - now).total_seconds()))
 
 SYSTEM_PROMPT = """You are a tango event research assistant.
 Extract milonga events AND tango practicas for a specific city and multiple dates from the provided web page contents.
@@ -336,6 +351,16 @@ async def run_milonga_agent(city: str, date: str, days_ahead: int = 3) -> Milong
 
     # Normalize city name and validate it exists
     canonical_city, city_found = await _normalize_city(client, city)
+
+    # Check Redis cache before doing any work
+    r = _get_redis()
+    cache_key = f"results:{canonical_city.lower()}:{date}"
+    if r and city_found:
+        cached = r.get(cache_key)
+        if cached:
+            import logging
+            logging.info("cache_hit city=%r date=%s", canonical_city, date)
+            return MilongaResponse.model_validate_json(cached)
     if not city_found:
         return MilongaResponse(
             city=city,
@@ -378,7 +403,7 @@ async def run_milonga_agent(city: str, date: str, days_ahead: int = 3) -> Milong
             await _run_with_urls(client, canonical_city, dates, search_web, [])
         _save_sites(canonical_city, events, schedule_sources, all_ics_urls, ics_contents)
 
-    return MilongaResponse(
+    result = MilongaResponse(
         city=canonical_city,
         date=date,
         events=events,
@@ -387,3 +412,6 @@ async def run_milonga_agent(city: str, date: str, days_ahead: int = 3) -> Milong
         sources_checked=sources_checked,
         city_found=True,
     )
+    if r:
+        r.set(cache_key, result.model_dump_json(), ex=_ttl_until_midnight())
+    return result
