@@ -54,6 +54,57 @@ MSG: dict[str, dict[str, str]] = {
         "searches_left": "\n<i>({remaining} free search(es) left today)</i>",
         "disclaimer": "ℹ️ <i>AI-powered bot — info may be incomplete. Always verify with the organizer.</i>",
         "error": "⚠️ Something went wrong. Please try again.",
+        # Partner finder
+        "btn_partner": "🤝 Find a practice partner",
+        "partner_ask_role": "🕺 <b>What's your role?</b>",
+        "partner_role_leader": "Leader",
+        "partner_role_follower": "Follower",
+        "partner_role_both": "Can do both",
+        "partner_role_label_leader": "leader",
+        "partner_role_label_follower": "follower",
+        "partner_role_label_both": "leader/follower",
+        "partner_ask_city": (
+            "🏙 <b>Which city are you heading to for practice?</b>\n\n"
+            "<i>Share your location or type the city name.</i>"
+        ),
+        "partner_city_use_last": "Use {city}",
+        "partner_city_type": "Enter city",
+        "partner_share_location": "Share location",
+        "partner_ask_note": (
+            "✏️ <b>A word about yourself?</b>\n"
+            "<i>Level, style, anything useful — optional.</i>"
+        ),
+        "partner_note_skip": "Skip",
+        "partner_list_header": "🤝 <b>Looking for a partner in {city} today:</b>\n",
+        "partner_list_empty": (
+            "🤝 No one else is looking in <b>{city}</b> right now.\n\n"
+            "Your request is saved — I'll notify you when someone shows up."
+        ),
+        "partner_remove_btn": "Found a partner ✓",
+        "partner_refresh_btn": "Refresh",
+        "partner_removed": "Your request has been removed.",
+        "partner_already": (
+            "You already have an active request in <b>{city}</b> as {role}.\n\n"
+            "Update it or remove it first."
+        ),
+        "partner_notify_msg": (
+            "👋 Someone is looking for a practice partner in <b>{city}</b> today!\n"
+            "Open the bot to see the list: /partner"
+        ),
+        "partner_nudge_msg": (
+            "Did you find a practice partner in <b>{city}</b>?\n\n"
+            "If yes — tap below so others know the spot is taken."
+        ),
+        "partner_nudge_yes": "Yes, remove me ✓",
+        "partner_nudge_no": "Still looking",
+        "partner_nudge_still": "Got it — still in the list.",
+        "partner_no_username": (
+            "⚠️ You don't have a Telegram username set.\n"
+            "Others won't be able to contact you directly.\n\n"
+            "You can set one in Telegram Settings → Edit Profile → Username."
+        ),
+        "partner_location_failed": "Couldn't detect city from your location. Please type the city name:",
+        "partner_city_failed": "Couldn't verify the city name right now. Please try again:",
     },
     "ru": {
         "welcome": (
@@ -104,6 +155,57 @@ MSG: dict[str, dict[str, str]] = {
         "searches_left": "\n<i>(осталось {remaining} поиск(а) сегодня)</i>",
         "disclaimer": "ℹ️ <i>Бот на основе ИИ — информация может быть неполной. Уточняйте у организаторов.</i>",
         "error": "⚠️ Что-то пошло не так. Попробуйте ещё раз.",
+        # Partner finder
+        "btn_partner": "🤝 Найти партнёра для практики",
+        "partner_ask_role": "🕺 <b>Какая у тебя роль?</b>",
+        "partner_role_leader": "Лидер",
+        "partner_role_follower": "Фолловер",
+        "partner_role_both": "Могу обе",
+        "partner_role_label_leader": "лидер",
+        "partner_role_label_follower": "фолловер",
+        "partner_role_label_both": "лидер/фолловер",
+        "partner_ask_city": (
+            "🏙 <b>В какой город едешь на практику?</b>\n\n"
+            "<i>Поделись геолокацией или введи название города.</i>"
+        ),
+        "partner_city_use_last": "Использовать {city}",
+        "partner_city_type": "Ввести город",
+        "partner_share_location": "Поделиться геолокацией",
+        "partner_ask_note": (
+            "✏️ <b>Пару слов о себе?</b>\n"
+            "<i>Уровень, стиль, что угодно — необязательно.</i>"
+        ),
+        "partner_note_skip": "Пропустить",
+        "partner_list_header": "🤝 <b>Ищут партнёра в {city} сегодня:</b>\n",
+        "partner_list_empty": (
+            "🤝 Сейчас никто не ищет партнёра в <b>{city}</b>.\n\n"
+            "Заявка сохранена — пришлю уведомление, когда кто-то появится."
+        ),
+        "partner_remove_btn": "Нашёл партнёра ✓",
+        "partner_refresh_btn": "Обновить",
+        "partner_removed": "Заявка удалена.",
+        "partner_already": (
+            "У тебя уже есть активная заявка в <b>{city}</b> как {role}.\n\n"
+            "Обнови или удали её сначала."
+        ),
+        "partner_notify_msg": (
+            "👋 Кто-то ищет партнёра для практики в <b>{city}</b> сегодня!\n"
+            "Открой бота, чтобы увидеть список: /partner"
+        ),
+        "partner_nudge_msg": (
+            "Ты нашёл партнёра для практики в <b>{city}</b>?\n\n"
+            "Если да — нажми ниже, чтобы убрать заявку."
+        ),
+        "partner_nudge_yes": "Да, убрать меня ✓",
+        "partner_nudge_no": "Ещё ищу",
+        "partner_nudge_still": "Понял — остаёшься в списке.",
+        "partner_no_username": (
+            "⚠️ У тебя не задан username в Telegram.\n"
+            "Другие не смогут написать тебе напрямую.\n\n"
+            "Задать можно в Настройки Telegram → Изменить профиль → Имя пользователя."
+        ),
+        "partner_location_failed": "Не удалось определить город по геолокации. Введи название города:",
+        "partner_city_failed": "Не получилось обработать название города. Попробуй ещё раз:",
     },
     "he": {
         "welcome": (
@@ -154,6 +256,57 @@ MSG: dict[str, dict[str, str]] = {
         "searches_left": "\n<i>(נותרו {remaining} חיפוש/ים היום)</i>",
         "disclaimer": "ℹ️ <i>בוט מבוסס בינה מלאכותית — המידע עשוי להיות חלקי. תמיד בדקו עם המארגן.</i>",
         "error": "⚠️ משהו השתבש. נסה שוב.",
+        # Partner finder
+        "btn_partner": "🤝 מצא שותף לפרקטיקה",
+        "partner_ask_role": "🕺 <b>מה התפקיד שלך?</b>",
+        "partner_role_leader": "מוביל",
+        "partner_role_follower": "עוקב/ת",
+        "partner_role_both": "שניהם",
+        "partner_role_label_leader": "מוביל",
+        "partner_role_label_follower": "עוקב/ת",
+        "partner_role_label_both": "מוביל/עוקב",
+        "partner_ask_city": (
+            "🏙 <b>לאיזו עיר אתה נוסע לפרקטיקה?</b>\n\n"
+            "<i>שתף מיקום או הכנס שם עיר.</i>"
+        ),
+        "partner_city_use_last": "השתמש ב-{city}",
+        "partner_city_type": "הכנס עיר",
+        "partner_share_location": "שתף מיקום",
+        "partner_ask_note": (
+            "✏️ <b>כמה מילים על עצמך?</b>\n"
+            "<i>רמה, סגנון, כל דבר שימושי — אופציונלי.</i>"
+        ),
+        "partner_note_skip": "דלג",
+        "partner_list_header": "🤝 <b>מחפשים שותף ב-{city} היום:</b>\n",
+        "partner_list_empty": (
+            "🤝 אף אחד לא מחפש שותף ב-<b>{city}</b> כרגע.\n\n"
+            "הבקשה שלך נשמרה — אשלח הודעה כשמישהו יופיע."
+        ),
+        "partner_remove_btn": "מצאתי שותף ✓",
+        "partner_refresh_btn": "רענן",
+        "partner_removed": "הבקשה שלך הוסרה.",
+        "partner_already": (
+            "כבר יש לך בקשה פעילה ב-<b>{city}</b> כ-{role}.\n\n"
+            "עדכן או הסר אותה תחילה."
+        ),
+        "partner_notify_msg": (
+            "👋 מישהו מחפש שותף לפרקטיקה ב-<b>{city}</b> היום!\n"
+            "פתח את הבוט לצפייה ברשימה: /partner"
+        ),
+        "partner_nudge_msg": (
+            "מצאת שותף לפרקטיקה ב-<b>{city}</b>?\n\n"
+            "אם כן — לחץ למטה כדי להסיר את הבקשה."
+        ),
+        "partner_nudge_yes": "כן, הסר אותי ✓",
+        "partner_nudge_no": "עדיין מחפש",
+        "partner_nudge_still": "הבנתי — נשאר ברשימה.",
+        "partner_no_username": (
+            "⚠️ אין לך שם משתמש ב-Telegram.\n"
+            "אחרים לא יוכלו לפנות אליך ישירות.\n\n"
+            "אפשר להגדיר ב: הגדרות Telegram ← עריכת פרופיל ← שם משתמש."
+        ),
+        "partner_location_failed": "לא הצלחתי לזהות עיר מהמיקום. הכנס שם עיר:",
+        "partner_city_failed": "לא הצלחתי לאמת את שם העיר כרגע. נסה שוב:",
     },
     "es": {
         "welcome": (
@@ -204,6 +357,57 @@ MSG: dict[str, dict[str, str]] = {
         "searches_left": "\n<i>(quedan {remaining} búsqueda(s) hoy)</i>",
         "disclaimer": "ℹ️ <i>Bot de IA — la información puede ser incompleta. Verifica siempre con el organizador.</i>",
         "error": "⚠️ Algo salió mal. Inténtalo de nuevo.",
+        # Partner finder
+        "btn_partner": "🤝 Buscar pareja para práctica",
+        "partner_ask_role": "🕺 <b>¿Cuál es tu rol?</b>",
+        "partner_role_leader": "Líder",
+        "partner_role_follower": "Seguidor/a",
+        "partner_role_both": "Puedo ambos",
+        "partner_role_label_leader": "líder",
+        "partner_role_label_follower": "seguidor/a",
+        "partner_role_label_both": "líder/seguidor",
+        "partner_ask_city": (
+            "🏙 <b>¿A qué ciudad vas a practicar?</b>\n\n"
+            "<i>Comparte tu ubicación o escribe el nombre de la ciudad.</i>"
+        ),
+        "partner_city_use_last": "Usar {city}",
+        "partner_city_type": "Ingresar ciudad",
+        "partner_share_location": "Compartir ubicación",
+        "partner_ask_note": (
+            "✏️ <b>¿Algo sobre ti?</b>\n"
+            "<i>Nivel, estilo, lo que sea útil — opcional.</i>"
+        ),
+        "partner_note_skip": "Omitir",
+        "partner_list_header": "🤝 <b>Buscan pareja en {city} hoy:</b>\n",
+        "partner_list_empty": (
+            "🤝 Nadie más busca pareja en <b>{city}</b> ahora.\n\n"
+            "Tu solicitud está guardada — te avisaré cuando alguien aparezca."
+        ),
+        "partner_remove_btn": "Encontré pareja ✓",
+        "partner_refresh_btn": "Actualizar",
+        "partner_removed": "Tu solicitud fue eliminada.",
+        "partner_already": (
+            "Ya tienes una solicitud activa en <b>{city}</b> como {role}.\n\n"
+            "Actualízala o elimínala primero."
+        ),
+        "partner_notify_msg": (
+            "👋 ¡Alguien busca pareja para práctica en <b>{city}</b> hoy!\n"
+            "Abre el bot para ver la lista: /partner"
+        ),
+        "partner_nudge_msg": (
+            "¿Encontraste pareja para practicar en <b>{city}</b>?\n\n"
+            "Si es así — toca abajo para eliminar tu solicitud."
+        ),
+        "partner_nudge_yes": "Sí, quitarme ✓",
+        "partner_nudge_no": "Sigo buscando",
+        "partner_nudge_still": "Entendido — sigues en la lista.",
+        "partner_no_username": (
+            "⚠️ No tienes nombre de usuario en Telegram.\n"
+            "Otros no podrán contactarte directamente.\n\n"
+            "Puedes configurarlo en: Ajustes de Telegram → Editar perfil → Nombre de usuario."
+        ),
+        "partner_location_failed": "No pude detectar la ciudad por tu ubicación. Escribe el nombre de la ciudad:",
+        "partner_city_failed": "No pude verificar el nombre de la ciudad ahora. Inténtalo de nuevo:",
     },
 }
 

@@ -1,21 +1,13 @@
 import json
-import os
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta
 from pathlib import Path
 
+from app.redis_client import get_redis as _redis, _ttl_until_midnight
+
 _DB_PATH = Path(__file__).parent.parent / "users_db.json"
-FREE_DAILY_LIMIT = 20
+FREE_DAILY_LIMIT = 5
 PREMIUM_DAYS = 30
 _REDIS_KEY = "users_db"
-
-
-def _redis():
-    url = os.environ.get("UPSTASH_REDIS_REST_URL")
-    token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
-    if url and token:
-        from upstash_redis.asyncio import Redis
-        return Redis(url=url, token=token)
-    return None
 
 
 async def _load() -> dict:
@@ -43,12 +35,6 @@ async def _save(data: dict) -> None:
         except Exception:
             pass
     _DB_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
-
-
-def _ttl_until_midnight() -> int:
-    now = datetime.now(timezone.utc)
-    midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-    return max(300, int((midnight - now).total_seconds()))
 
 
 def _entry(data: dict, user_id: int) -> dict:
