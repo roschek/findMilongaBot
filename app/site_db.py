@@ -3,19 +3,12 @@ import os
 from datetime import date
 from pathlib import Path
 
+from .redis_client import get_redis as _redis
+
 _DB_PATH = Path(__file__).parent.parent / "sites_db.json"
 _DISCOVERY_TTL_DAYS = 30
 _MAX_FAILURES = 3
 _REDIS_KEY = "sites_db"
-
-
-def _redis():
-    url = os.environ.get("UPSTASH_REDIS_REST_URL")
-    token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
-    if url and token:
-        from upstash_redis.asyncio import Redis
-        return Redis(url=url, token=token)
-    return None
 
 
 async def _load() -> dict:
@@ -80,9 +73,16 @@ async def save_productive_sites(city: str, web_urls: list[str], ics_urls: list[s
     def _merge(section: str, new_urls: list[str]) -> None:
         if not new_urls:
             return
-        existing = {s["url"]: s for s in entry.get(section, [])}
+        new_set = set(new_urls)
+        # Drop permanently dead URLs that aren't being re-added
+        existing = {
+            s["url"]: s for s in entry.get(section, [])
+            if s.get("failures", 0) < _MAX_FAILURES or s["url"] in new_set
+        }
         for u in new_urls:
-            if u not in existing:
+            if u in existing:
+                existing[u]["failures"] = 0  # re-discovered — treat as fresh
+            else:
                 existing[u] = {"url": u, "failures": 0}
         entry[section] = list(existing.values())
 

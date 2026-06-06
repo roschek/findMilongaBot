@@ -8,5 +8,5 @@ python-dotenv==1.0.1
 cachetools==5.4.0
 icalendar>=5.0
 recurring-ical-events>=3.0
-python-telegram-bot==22.7
+python-telegram-bot[job-queue]==22.7
 upstash-redis>=1.0.0

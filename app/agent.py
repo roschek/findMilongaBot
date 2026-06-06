@@ -1,7 +1,7 @@
 import json
 import asyncio
 import os
-from datetime import date as date_type, datetime, timedelta, timezone
+from datetime import date as date_type, timedelta
 from urllib.parse import urlparse
 
 from google import genai
@@ -10,21 +10,7 @@ from google.genai import types
 from .tools import read_website, read_ics
 from .models import MilongaEvent, MilongaResponse
 from . import site_db
-
-
-def _get_redis():
-    url = os.environ.get("UPSTASH_REDIS_REST_URL")
-    token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
-    if url and token:
-        from upstash_redis.asyncio import Redis
-        return Redis(url=url, token=token)
-    return None
-
-
-def _ttl_until_midnight() -> int:
-    now = datetime.now(timezone.utc)
-    midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-    return max(300, int((midnight - now).total_seconds()))
+from .redis_client import get_redis as _get_redis, _ttl_until_midnight
 
 SYSTEM_PROMPT = """You are a tango event research assistant.
 Extract milonga events AND tango practicas for a specific city and multiple dates from the provided web page contents.
@@ -94,7 +80,7 @@ async def _normalize_city(client: genai.Client, city_input: str) -> tuple[str, b
     return result, True
 
 
-async def _search_phase(client: genai.Client, city: str, date: str) -> tuple[list[str], list[str]]:
+async def _search_phase(client: genai.Client, city: str, date: str) -> list[str]:
     """Use Gemini + Google Search to find relevant URLs."""
     response = await client.aio.models.generate_content(
         model="gemini-2.5-flash",
@@ -195,7 +181,7 @@ async def _fetch_pages(
 
     sources_checked = list(all_web)
 
-    for url, content in zip(web_urls, page_contents):
+    for url, content in zip(all_web, page_contents):
         if content.startswith("ERROR"):
             await site_db.mark_failure(city, url)
         else:
