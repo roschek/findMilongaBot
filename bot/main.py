@@ -32,6 +32,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 from app.agent import run_milonga_agent
+from app.redis_client import get_redis as _get_redis
 from bot.messages import get_lang, t
 from bot.limits import check_and_increment, get_status, get_search_stats, FREE_DAILY_LIMIT
 from bot.partner import (
@@ -153,12 +154,29 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_user.id != ADMIN_ID:
         return
-    stats = await get_search_stats()
+    s = await get_search_stats()
+
+    ok, empty, nf = s["result_ok"], s["result_empty"], s["result_notfound"]
+    total_outcomes = ok + empty + nf
+    quality = f"{ok * 100 // total_outcomes}%" if total_outcomes else "n/a"
+
+    cities_lines = "\n".join(
+        f"  {city} — {score}" for city, score in s["top_cities"]
+    ) or "  —"
+
     await update.message.reply_text(
         f"📊 <b>Stats</b>\n\n"
-        f"Total users: <b>{stats['total_users']}</b>\n"
-        f"Active today: <b>{stats['active_today']}</b>\n"
-        f"Searches today: <b>{stats['searches_today']}</b>",
+        f"👤 <b>Users</b>\n"
+        f"  Total: {s['total_users']}  |  New today: {s['new_users_today']}  |  Active today: {s['active_today']}\n\n"
+        f"🔍 <b>Searches</b>\n"
+        f"  Today: {s['searches_today']}  |  All time: {s['searches_total']}\n\n"
+        f"✅ <b>Quality</b>  {quality}\n"
+        f"  ok: {ok}  |  no events: {empty}  |  not found: {nf}\n\n"
+        f"🤝 <b>Partner requests</b>\n"
+        f"  Today: {s['partner_requests_today']}  |  All time: {s['partner_requests_total']}\n\n"
+        f"⭐ <b>Donations</b>\n"
+        f"  Today: {s['donations_stars_today']}  |  All time: {s['donations_stars_total']}\n\n"
+        f"🔝 <b>Top cities</b>\n{cities_lines}",
         parse_mode="HTML",
     )
 
@@ -339,6 +357,15 @@ async def _finish_partner_request(
 
     username = user.username
     await save_partner(user_id, city, role, note, username, lang=lang)
+
+    try:
+        _r = _get_redis()
+        if _r:
+            _today = str(date.today())
+            await _r.hincrby(f"stats:day:{_today}", "partner_requests", 1)
+            await _r.hincrby("stats:totals", "partner_requests", 1)
+    except Exception:
+        pass
 
     # Notify users who were waiting — batch-fetch to avoid N sequential Redis GETs
     to_notify = await pop_notify_users(city, exclude_user_id=user_id)
@@ -684,16 +711,29 @@ async def handle_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if not result.city_found:
         logging.info("search_done user=%d city=%r result=not_found elapsed=%.0fs", user_id, city, elapsed)
         text = t(lang, "city_not_found").format(city=city)
+        outcome = "result_notfound"
     elif result.events:
         logging.info("search_done user=%d city=%r result=ok events=%d elapsed=%.0fs",
                      user_id, result.city, len(result.events), elapsed)
         context.user_data["last_city"] = result.city
         text = _format_events(result.events, result.city, result.sources_checked)
+        outcome = "result_ok"
     else:
         logging.info("search_done user=%d city=%r result=no_events elapsed=%.0fs", user_id, result.city, elapsed)
         context.user_data["last_city"] = result.city
         text = t(lang, "no_events").format(city=result.city)
         text += _sources_line(result.sources_checked)
+        outcome = "result_empty"
+
+    try:
+        _r = _get_redis()
+        if _r:
+            _today = str(date.today())
+            await _r.hincrby(f"stats:day:{_today}", outcome, 1)
+            if result.city_found:
+                await _r.zincrby("stats:cities", 1, result.city)
+    except Exception:
+        pass
 
     # Hint about remaining searches when running low (free users only)
     if 0 < remaining <= 2:
@@ -721,13 +761,21 @@ async def successful_payment(update: Update, context: ContextTypes.DEFAULT_TYPE)
     lang = _lang(context, update.effective_user)
     stars = update.message.successful_payment.total_amount
     logging.info("donation user=%d stars=%d", update.effective_user.id, stars)
+    try:
+        _r = _get_redis()
+        if _r:
+            _today = str(date.today())
+            await _r.hincrby(f"stats:day:{_today}", "donations_stars", stars)
+            await _r.hincrby("stats:totals", "donations_stars", stars)
+    except Exception:
+        pass
     await update.message.reply_text(
         t(lang, "donate_thanks"), parse_mode="HTML", reply_markup=_main_menu_kb(lang)
     )
 
 
 def main() -> None:
-    app = Application.builder().token(os.environ["TELEGRAM_BOT_TOKEN"]).build()
+    app = Application.builder().token(os.environ["TELEGRAM_BOT_TOKEN"]).concurrent_updates(True).build()
 
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("status", cmd_status))
