@@ -45,6 +45,8 @@ MSG: dict[str, dict[str, str]] = {
         "paywall_button": "🔓 Unlock 24h — {stars} ⭐",
         "paywall_invoice_title": "24-hour unlimited access",
         "paywall_invoice_desc": "Unlock unlimited milonga searches for 24 hours",
+        "paywall_thanks": "✅ Unlimited access unlocked for 24 hours!\nSearching in <b>{city}</b>…",
+        "paywall_unlocked": "✅ Unlimited access unlocked for 24 hours! Send me a city to search.",
         "rate_limit": (
             "⏳ You've used all {limit} free searches for today.\n\n"
             "Support the project to unlock unlimited searches! ☕"

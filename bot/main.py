@@ -797,8 +797,35 @@ async def pre_checkout(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def successful_payment(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     lang = _lang(context, update.effective_user)
+    payload = update.message.successful_payment.invoice_payload
     stars = update.message.successful_payment.total_amount
-    logging.info("donation user=%d stars=%d", update.effective_user.id, stars)
+    user_id = update.effective_user.id
+
+    if payload == "searchpass":
+        logging.info("paid_access user=%d stars=%d", user_id, stars)
+        await grant_premium(user_id, days=PAID_SEARCH_DAYS)
+        try:
+            _r = _get_redis()
+            if _r:
+                _today = str(date.today())
+                await _r.hincrby(f"stats:day:{_today}", "paid_access_stars", stars)
+                await _r.hincrby("stats:totals", "paid_access_stars", stars)
+        except Exception:
+            pass
+
+        city = context.user_data.pop("pending_city", None)
+        if city:
+            await update.message.reply_text(
+                t(lang, "paywall_thanks").format(city=city), parse_mode="HTML"
+            )
+            await _run_search(update, context, lang, city, -1)
+        else:
+            await update.message.reply_text(
+                t(lang, "paywall_unlocked"), parse_mode="HTML", reply_markup=_main_menu_kb(lang)
+            )
+        return
+
+    logging.info("donation user=%d stars=%d", user_id, stars)
     try:
         _r = _get_redis()
         if _r:

@@ -59,3 +59,66 @@ async def test_cb_buy_search_pass_sends_invoice_with_fixed_price():
     assert kwargs["payload"] == "searchpass"
     assert kwargs["currency"] == "XTR"
     assert kwargs["prices"][0].amount == main.PAID_SEARCH_STARS
+
+
+def _make_payment_update(payload: str, stars: int, user_id: int = 1, lang: str = "en"):
+    update = MagicMock()
+    update.effective_user = MagicMock(id=user_id, language_code=lang)
+    update.message.successful_payment.invoice_payload = payload
+    update.message.successful_payment.total_amount = stars
+    update.message.reply_text = AsyncMock()
+    return update
+
+
+async def test_successful_payment_searchpass_continues_pending_search(monkeypatch):
+    monkeypatch.setattr(main, "grant_premium", AsyncMock(return_value="2026-07-17"))
+    monkeypatch.setattr(main, "_get_redis", lambda: None)
+    run_search_mock = AsyncMock()
+    monkeypatch.setattr(main, "_run_search", run_search_mock)
+
+    update = _make_payment_update("searchpass", main.PAID_SEARCH_STARS)
+    context = _make_context()
+    context.user_data["pending_city"] = "Berlin"
+
+    await main.successful_payment(update, context)
+
+    main.grant_premium.assert_awaited_once_with(1, days=main.PAID_SEARCH_DAYS)
+    run_search_mock.assert_awaited_once_with(update, context, "en", "Berlin", -1)
+    assert "pending_city" not in context.user_data
+
+
+async def test_successful_payment_searchpass_without_pending_city_shows_unlocked(monkeypatch):
+    monkeypatch.setattr(main, "grant_premium", AsyncMock(return_value="2026-07-17"))
+    monkeypatch.setattr(main, "_get_redis", lambda: None)
+    run_search_mock = AsyncMock()
+    monkeypatch.setattr(main, "_run_search", run_search_mock)
+
+    update = _make_payment_update("searchpass", main.PAID_SEARCH_STARS)
+    context = _make_context()
+
+    await main.successful_payment(update, context)
+
+    run_search_mock.assert_not_awaited()
+    update.message.reply_text.assert_awaited_once()
+    args, _ = update.message.reply_text.call_args
+    assert args[0] == main.t("en", "paywall_unlocked")
+
+
+async def test_successful_payment_donate_payload_keeps_existing_behavior(monkeypatch):
+    grant_premium_mock = AsyncMock()
+    monkeypatch.setattr(main, "grant_premium", grant_premium_mock)
+    monkeypatch.setattr(main, "_get_redis", lambda: None)
+    run_search_mock = AsyncMock()
+    monkeypatch.setattr(main, "_run_search", run_search_mock)
+
+    update = _make_payment_update("donate_250", 250)
+    context = _make_context()
+
+    await main.successful_payment(update, context)
+
+    grant_premium_mock.assert_not_awaited()
+    run_search_mock.assert_not_awaited()
+    update.message.reply_text.assert_awaited_once()
+    args, kwargs = update.message.reply_text.call_args
+    assert args[0] == main.t("en", "donate_thanks")
+    assert kwargs["reply_markup"] is not None
