@@ -34,7 +34,15 @@ logging.basicConfig(level=logging.INFO)
 from app.agent import run_milonga_agent
 from app.redis_client import get_redis as _get_redis
 from bot.messages import get_lang, t
-from bot.limits import check_and_increment, get_status, get_search_stats, FREE_DAILY_LIMIT
+from bot.limits import (
+    check_and_increment,
+    get_status,
+    get_search_stats,
+    grant_premium,
+    FREE_DAILY_LIMIT,
+    PAID_SEARCH_STARS,
+    PAID_SEARCH_DAYS,
+)
 from bot.partner import (
     add_notify,
     get_partner,
@@ -77,6 +85,15 @@ def _donate_kb(lang: str) -> InlineKeyboardMarkup:
     rows.append([InlineKeyboardButton(t(lang, "donate_custom"), callback_data="custom_stars")])
     rows.append([InlineKeyboardButton(t(lang, "close"), callback_data="close_donate")])
     return InlineKeyboardMarkup(rows)
+
+
+def _paywall_kb(lang: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([[
+        InlineKeyboardButton(
+            t(lang, "paywall_button").format(stars=PAID_SEARCH_STARS),
+            callback_data="buy_search_pass",
+        )
+    ]])
 
 
 def _sources_line(sources_checked: list[str]) -> str:
@@ -234,6 +251,19 @@ async def cb_stars(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         provider_token="",
         currency="XTR",
         prices=[LabeledPrice(t(lang, "donate_title"), stars)],
+    )
+
+
+async def cb_buy_search_pass(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.callback_query.answer()
+    lang = _lang(context, update.effective_user)
+    await update.callback_query.message.reply_invoice(
+        title=t(lang, "paywall_invoice_title"),
+        description=t(lang, "paywall_invoice_desc"),
+        payload="searchpass",
+        provider_token="",
+        currency="XTR",
+        prices=[LabeledPrice(t(lang, "paywall_invoice_title"), PAID_SEARCH_STARS)],
     )
 
 
@@ -673,10 +703,11 @@ async def handle_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     allowed, remaining = await check_and_increment(user_id)
     if not allowed:
         logging.info("rate_limit user=%d city=%r", user_id, city)
+        context.user_data["pending_city"] = city
         await update.message.reply_text(
-            t(lang, "rate_limit").format(limit=FREE_DAILY_LIMIT),
+            t(lang, "rate_limit").format(limit=FREE_DAILY_LIMIT, stars=PAID_SEARCH_STARS),
             parse_mode="HTML",
-            reply_markup=_donate_kb(lang),
+            reply_markup=_paywall_kb(lang),
         )
         return
 
@@ -793,6 +824,7 @@ def main() -> None:
     app.add_handler(CallbackQueryHandler(cb_donate, pattern="^donate$"))
     app.add_handler(CallbackQueryHandler(cb_close_donate, pattern="^close_donate$"))
     app.add_handler(CallbackQueryHandler(cb_stars, pattern=r"^stars_\d+$"))
+    app.add_handler(CallbackQueryHandler(cb_buy_search_pass, pattern="^buy_search_pass$"))
     app.add_handler(CallbackQueryHandler(cb_custom_stars, pattern="^custom_stars$"))
     app.add_handler(CallbackQueryHandler(cb_partner_start, pattern="^partner_start$"))
     app.add_handler(CallbackQueryHandler(cb_partner_role, pattern=r"^partner_role_(leader|follower|both)$"))

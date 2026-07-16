@@ -42,6 +42,9 @@ MSG: dict[str, dict[str, str]] = {
         "donate_desc_30": "Unlock 30 days of unlimited searches in Milonga Finder",
         "donate_desc_90": "Unlock 90 days of unlimited searches in Milonga Finder",
         "donate_thanks": "🙏 Thank you so much! Your support means a lot. ❤️",
+        "paywall_button": "🔓 Unlock 24h — {stars} ⭐",
+        "paywall_invoice_title": "24-hour unlimited access",
+        "paywall_invoice_desc": "Unlock unlimited milonga searches for 24 hours",
         "rate_limit": (
             "⏳ You've used all {limit} free searches for today.\n\n"
             "Support the project to unlock unlimited searches! ☕"
