@@ -7,6 +7,8 @@ from app.redis_client import get_redis as _redis, _ttl_until_midnight
 _DB_PATH = Path(__file__).parent.parent / "users_db.json"
 FREE_DAILY_LIMIT = 5
 PREMIUM_DAYS = 30
+PAID_SEARCH_STARS = 150
+PAID_SEARCH_DAYS = 1
 _REDIS_KEY = "users_db"
 
 
