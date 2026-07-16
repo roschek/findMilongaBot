@@ -680,6 +680,13 @@ async def handle_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         )
         return
 
+    await _run_search(update, context, lang, city, remaining)
+
+
+async def _run_search(
+    update: Update, context: ContextTypes.DEFAULT_TYPE, lang: str, city: str, remaining: int
+) -> None:
+    user_id = update.effective_user.id
     logging.info("search_start user=%d city=%r lang=%s", user_id, city, lang)
     t0 = time.monotonic()
 
