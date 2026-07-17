@@ -193,6 +193,8 @@ async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"  Today: {s['partner_requests_today']}  |  All time: {s['partner_requests_total']}\n\n"
         f"⭐ <b>Donations</b>\n"
         f"  Today: {s['donations_stars_today']}  |  All time: {s['donations_stars_total']}\n\n"
+        f"🔓 <b>Paid access</b>\n"
+        f"  Today: {s['paid_access_stars_today']} ⭐  |  All time: {s['paid_access_stars_total']} ⭐\n\n"
         f"🔝 <b>Top cities</b>\n{cities_lines}",
         parse_mode="HTML",
     )

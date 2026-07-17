@@ -146,8 +146,10 @@ async def get_search_stats() -> dict:
         "result_notfound": 0,
         "partner_requests_today": 0,
         "donations_stars_today": 0,
+        "paid_access_stars_today": 0,
         "searches_total": 0,
         "donations_stars_total": 0,
+        "paid_access_stars_total": 0,
         "partner_requests_total": 0,
         "top_cities": [],
     }
@@ -171,8 +173,10 @@ async def get_search_stats() -> dict:
             "result_notfound": _i(day_raw, "result_notfound"),
             "partner_requests_today": _i(day_raw, "partner_requests"),
             "donations_stars_today": _i(day_raw, "donations_stars"),
+            "paid_access_stars_today": _i(day_raw, "paid_access_stars"),
             "searches_total": _i(totals_raw, "searches"),
             "donations_stars_total": _i(totals_raw, "donations_stars"),
+            "paid_access_stars_total": _i(totals_raw, "paid_access_stars"),
             "partner_requests_total": _i(totals_raw, "partner_requests"),
             "top_cities": [(c, int(s)) for c, s in cities_raw],
         }
