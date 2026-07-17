@@ -49,7 +49,7 @@ MSG: dict[str, dict[str, str]] = {
         "paywall_unlocked": "✅ Unlimited access unlocked for 24 hours! Send me a city to search.",
         "rate_limit": (
             "⏳ You've used all {limit} free searches for today.\n\n"
-            "Support the project to unlock unlimited searches! ☕"
+            "Unlock unlimited searches for 24 hours for {stars} ⭐."
         ),
         "premium_granted": (
             "🎉 Thank you! Unlimited searches unlocked for <b>{days} days</b> (until {until}). ❤️"
@@ -148,9 +148,14 @@ MSG: dict[str, dict[str, str]] = {
         "donate_desc_30": "30 дней безлимитного поиска в Milonga Finder",
         "donate_desc_90": "90 дней безлимитного поиска в Milonga Finder",
         "donate_thanks": "🙏 Большое спасибо! Ваша поддержка очень важна. ❤️",
+        "paywall_button": "🔓 Открыть на сутки — {stars} ⭐",
+        "paywall_invoice_title": "Безлимит на 24 часа",
+        "paywall_invoice_desc": "Безлимитный поиск милонг в течение 24 часов",
+        "paywall_thanks": "✅ Безлимит открыт на 24 часа!\nИщу в <b>{city}</b>…",
+        "paywall_unlocked": "✅ Безлимит открыт на 24 часа! Отправьте город для поиска.",
         "rate_limit": (
             "⏳ Вы использовали все {limit} бесплатных поиска сегодня.\n\n"
-            "Поддержите проект и получите безлимитный поиск! ☕"
+            "Откройте безлимит на 24 часа за {stars} ⭐."
         ),
         "premium_granted": (
             "🎉 Спасибо! Безлимит активирован на <b>{days} дней</b> (до {until}). ❤️"
@@ -249,9 +254,14 @@ MSG: dict[str, dict[str, str]] = {
         "donate_desc_30": "30 ימי חיפוש ללא הגבלה ב-Milonga Finder",
         "donate_desc_90": "90 ימי חיפוש ללא הגבלה ב-Milonga Finder",
         "donate_thanks": "🙏 תודה רבה! התמיכה שלך מאוד חשובה. ❤️",
+        "paywall_button": "🔓 פתח ל-24 שעות — {stars} ⭐",
+        "paywall_invoice_title": "גישה ללא הגבלה ל-24 שעות",
+        "paywall_invoice_desc": "פתח חיפוש מילונגות ללא הגבלה למשך 24 שעות",
+        "paywall_thanks": "✅ הגישה נפתחה ל-24 שעות!\nמחפש ב-<b>{city}</b>…",
+        "paywall_unlocked": "✅ הגישה נפתחה ל-24 שעות! שלח שם עיר לחיפוש.",
         "rate_limit": (
             "⏳ השתמשת בכל {limit} החיפושים החינמיים של היום.\n\n"
-            "תמוך בפרויקט וקבל חיפוש ללא הגבלה! ☕"
+            "פתח חיפוש ללא הגבלה ל-24 שעות תמורת {stars} ⭐."
         ),
         "premium_granted": (
             "🎉 תודה! חיפוש ללא הגבלה פעיל ל-<b>{days} ימים</b> (עד {until}). ❤️"
@@ -350,9 +360,14 @@ MSG: dict[str, dict[str, str]] = {
         "donate_desc_30": "30 días de búsquedas ilimitadas en Milonga Finder",
         "donate_desc_90": "90 días de búsquedas ilimitadas en Milonga Finder",
         "donate_thanks": "🙏 ¡Muchas gracias! Tu apoyo es muy importante. ❤️",
+        "paywall_button": "🔓 Desbloquear 24h — {stars} ⭐",
+        "paywall_invoice_title": "Acceso ilimitado por 24 horas",
+        "paywall_invoice_desc": "Desbloquea búsquedas ilimitadas de milongas por 24 horas",
+        "paywall_thanks": "✅ ¡Acceso ilimitado desbloqueado por 24 horas!\nBuscando en <b>{city}</b>…",
+        "paywall_unlocked": "✅ ¡Acceso ilimitado desbloqueado por 24 horas! Envíame una ciudad para buscar.",
         "rate_limit": (
             "⏳ Has usado las {limit} búsquedas gratuitas de hoy.\n\n"
-            "¡Apoya el proyecto y desbloquea búsquedas ilimitadas! ☕"
+            "Desbloquea búsquedas ilimitadas por 24 horas por {stars} ⭐."
         ),
         "premium_granted": (
             "🎉 ¡Gracias! Búsquedas ilimitadas activadas por <b>{days} días</b> (hasta {until}). ❤️"
