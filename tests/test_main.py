@@ -18,7 +18,7 @@ def _make_context():
 
 
 async def test_handle_city_delegates_to_run_search_with_remaining(monkeypatch):
-    monkeypatch.setattr(main, "check_and_increment", AsyncMock(return_value=(True, 3)))
+    monkeypatch.setattr(main, "check_and_increment", AsyncMock(return_value=(True, 0)))
     run_search_mock = AsyncMock()
     monkeypatch.setattr(main, "_run_search", run_search_mock)
 
@@ -27,7 +27,7 @@ async def test_handle_city_delegates_to_run_search_with_remaining(monkeypatch):
 
     await main.handle_city(update, context)
 
-    run_search_mock.assert_awaited_once_with(update, context, "en", "Berlin", 3)
+    run_search_mock.assert_awaited_once_with(update, context, "en", "Berlin", 0)
 
 
 async def test_handle_city_quota_exceeded_saves_pending_city_and_shows_paywall(monkeypatch):
