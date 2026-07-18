@@ -48,15 +48,16 @@ MSG: dict[str, dict[str, str]] = {
         "paywall_thanks": "✅ Unlimited access unlocked for 24 hours!\nSearching in <b>{city}</b>…",
         "paywall_unlocked": "✅ Unlimited access unlocked for 24 hours! Send me a city to search.",
         "rate_limit": (
-            "⏳ You've used all {limit} free searches for today.\n\n"
+            "⏳ Your one free trial search is already used.\n\n"
             "Unlock unlimited searches for 24 hours for {stars} ⭐."
         ),
         "premium_granted": (
             "🎉 Thank you! Unlimited searches unlocked for <b>{days} days</b> (until {until}). ❤️"
         ),
         "status_premium": "⭐ <b>Status:</b> Premium until <b>{until}</b>. Unlimited searches.",
-        "status_free": "🔍 <b>Status:</b> Free plan — <b>{remaining}</b> of {limit} searches left today.",
-        "searches_left": "\n<i>({remaining} free search(es) left today)</i>",
+        "status_free_available": "🔍 <b>Status:</b> You have your one free trial search available.",
+        "status_free_used": "🔍 <b>Status:</b> Free trial search already used. Unlock 24h unlimited for {stars} ⭐.",
+        "free_trial_used": "\n\n<i>✅ That was your one free trial search. Next time, unlock 24h unlimited for {stars} ⭐.</i>",
         "disclaimer": "ℹ️ <i>AI-powered bot — info may be incomplete. Always verify with the organizer.</i>",
         "error": "⚠️ Something went wrong. Please try again.",
         # Partner finder

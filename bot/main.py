@@ -39,7 +39,6 @@ from bot.limits import (
     get_status,
     get_search_stats,
     grant_premium,
-    FREE_DAILY_LIMIT,
     PAID_SEARCH_STARS,
     PAID_SEARCH_DAYS,
 )
@@ -162,9 +161,12 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     lang = _lang(context, update.effective_user)
     status = await get_status(update.effective_user.id)
-    text = t(lang, "status_free").format(
-        remaining=status["remaining"], limit=FREE_DAILY_LIMIT
-    )
+    if status["premium"]:
+        text = t(lang, "status_premium").format(until=status["premium_until"])
+    elif status["remaining"] > 0:
+        text = t(lang, "status_free_available")
+    else:
+        text = t(lang, "status_free_used").format(stars=PAID_SEARCH_STARS)
     await update.message.reply_text(text, parse_mode="HTML", reply_markup=_main_menu_kb(lang))
 
 
@@ -707,7 +709,7 @@ async def handle_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         logging.info("rate_limit user=%d city=%r", user_id, city)
         context.user_data["pending_city"] = city
         await update.message.reply_text(
-            t(lang, "rate_limit").format(limit=FREE_DAILY_LIMIT, stars=PAID_SEARCH_STARS),
+            t(lang, "rate_limit").format(stars=PAID_SEARCH_STARS),
             parse_mode="HTML",
             reply_markup=_paywall_kb(lang),
         )
@@ -775,9 +777,9 @@ async def _run_search(
     except Exception:
         pass
 
-    # Hint about remaining searches when running low (free users only)
-    if 0 < remaining <= 2:
-        text += t(lang, "searches_left").format(remaining=remaining)
+    # Tell the user their one lifetime free search is now used up
+    if remaining == 0:
+        text += t(lang, "free_trial_used").format(stars=PAID_SEARCH_STARS)
 
     text += "\n\n" + t(lang, "disclaimer")
 

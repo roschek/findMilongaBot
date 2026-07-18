@@ -122,3 +122,80 @@ async def test_successful_payment_donate_payload_keeps_existing_behavior(monkeyp
     args, kwargs = update.message.reply_text.call_args
     assert args[0] == main.t("en", "donate_thanks")
     assert kwargs["reply_markup"] is not None
+
+
+async def test_cmd_status_shows_premium_message(monkeypatch):
+    monkeypatch.setattr(
+        main, "get_status",
+        AsyncMock(return_value={"premium": True, "premium_until": "2026-08-01", "remaining": -1}),
+    )
+    update = _make_update("/status")
+    context = _make_context()
+
+    await main.cmd_status(update, context)
+
+    update.message.reply_text.assert_awaited_once()
+    args, _ = update.message.reply_text.call_args
+    assert args[0] == main.t("en", "status_premium").format(until="2026-08-01")
+
+
+async def test_cmd_status_shows_free_available(monkeypatch):
+    monkeypatch.setattr(
+        main, "get_status",
+        AsyncMock(return_value={"premium": False, "premium_until": None, "remaining": 1}),
+    )
+    update = _make_update("/status")
+    context = _make_context()
+
+    await main.cmd_status(update, context)
+
+    args, _ = update.message.reply_text.call_args
+    assert args[0] == main.t("en", "status_free_available")
+
+
+async def test_cmd_status_shows_free_used(monkeypatch):
+    monkeypatch.setattr(
+        main, "get_status",
+        AsyncMock(return_value={"premium": False, "premium_until": None, "remaining": 0}),
+    )
+    update = _make_update("/status")
+    context = _make_context()
+
+    await main.cmd_status(update, context)
+
+    args, _ = update.message.reply_text.call_args
+    assert args[0] == main.t("en", "status_free_used").format(stars=main.PAID_SEARCH_STARS)
+
+
+async def test_run_search_appends_free_trial_notice_when_remaining_zero(monkeypatch):
+    fake_result = MagicMock(city_found=True, city="Berlin", events=[], sources_checked=[])
+    monkeypatch.setattr(main, "run_milonga_agent", AsyncMock(return_value=fake_result))
+    monkeypatch.setattr(main, "_get_redis", lambda: None)
+
+    status_message = MagicMock()
+    status_message.delete = AsyncMock()
+    update = _make_update("Berlin")
+    update.message.reply_text = AsyncMock(return_value=status_message)
+    context = _make_context()
+
+    await main._run_search(update, context, "en", "Berlin", 0)
+
+    final_text = update.message.reply_text.call_args_list[-1].args[0]
+    assert main.t("en", "free_trial_used").format(stars=main.PAID_SEARCH_STARS) in final_text
+
+
+async def test_run_search_omits_free_trial_notice_when_premium(monkeypatch):
+    fake_result = MagicMock(city_found=True, city="Berlin", events=[], sources_checked=[])
+    monkeypatch.setattr(main, "run_milonga_agent", AsyncMock(return_value=fake_result))
+    monkeypatch.setattr(main, "_get_redis", lambda: None)
+
+    status_message = MagicMock()
+    status_message.delete = AsyncMock()
+    update = _make_update("Berlin")
+    update.message.reply_text = AsyncMock(return_value=status_message)
+    context = _make_context()
+
+    await main._run_search(update, context, "en", "Berlin", -1)
+
+    final_text = update.message.reply_text.call_args_list[-1].args[0]
+    assert main.t("en", "free_trial_used").format(stars=main.PAID_SEARCH_STARS) not in final_text
