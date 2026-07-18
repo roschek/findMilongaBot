@@ -162,8 +162,9 @@ MSG: dict[str, dict[str, str]] = {
             "🎉 Спасибо! Безлимит активирован на <b>{days} дней</b> (до {until}). ❤️"
         ),
         "status_premium": "⭐ <b>Статус:</b> Премиум до <b>{until}</b>. Безлимитный поиск.",
-        "status_free": "🔍 <b>Статус:</b> Бесплатный план — осталось <b>{remaining}</b> из {limit} поисков сегодня.",
-        "searches_left": "\n<i>(осталось {remaining} поиск(а) сегодня)</i>",
+        "status_free_available": "🔍 <b>Статус:</b> У вас есть один бесплатный пробный поиск.",
+        "status_free_used": "🔍 <b>Статус:</b> Бесплатный поиск уже использован. Доступ на сутки — {stars} ⭐.",
+        "free_trial_used": "\n\n<i>✅ Это был ваш единственный бесплатный поиск. В следующий раз — {stars} ⭐ за сутки безлимита.</i>",
         "disclaimer": "ℹ️ <i>Бот на основе ИИ — информация может быть неполной. Уточняйте у организаторов.</i>",
         "error": "⚠️ Что-то пошло не так. Попробуйте ещё раз.",
         # Partner finder
@@ -268,8 +269,9 @@ MSG: dict[str, dict[str, str]] = {
             "🎉 תודה! חיפוש ללא הגבלה פעיל ל-<b>{days} ימים</b> (עד {until}). ❤️"
         ),
         "status_premium": "⭐ <b>סטטוס:</b> פרימיום עד <b>{until}</b>. חיפוש ללא הגבלה.",
-        "status_free": "🔍 <b>סטטוס:</b> תוכנית חינמית — נותרו <b>{remaining}</b> מתוך {limit} חיפושים היום.",
-        "searches_left": "\n<i>(נותרו {remaining} חיפוש/ים היום)</i>",
+        "status_free_available": "🔍 <b>סטטוס:</b> יש לך חיפוש ניסיון חינמי אחד זמין.",
+        "status_free_used": "🔍 <b>סטטוס:</b> חיפוש הניסיון החינמי כבר נוצל. פתח גישה ללא הגבלה ל-24 שעות תמורת {stars} ⭐.",
+        "free_trial_used": "\n\n<i>✅ זה היה חיפוש הניסיון החינמי היחיד שלך. בפעם הבאה — {stars} ⭐ לגישה ללא הגבלה ל-24 שעות.</i>",
         "disclaimer": "ℹ️ <i>בוט מבוסס בינה מלאכותית — המידע עשוי להיות חלקי. תמיד בדקו עם המארגן.</i>",
         "error": "⚠️ משהו השתבש. נסה שוב.",
         # Partner finder
@@ -374,8 +376,9 @@ MSG: dict[str, dict[str, str]] = {
             "🎉 ¡Gracias! Búsquedas ilimitadas activadas por <b>{days} días</b> (hasta {until}). ❤️"
         ),
         "status_premium": "⭐ <b>Estado:</b> Premium hasta <b>{until}</b>. Búsquedas ilimitadas.",
-        "status_free": "🔍 <b>Estado:</b> Plan gratuito — quedan <b>{remaining}</b> de {limit} búsquedas hoy.",
-        "searches_left": "\n<i>(quedan {remaining} búsqueda(s) hoy)</i>",
+        "status_free_available": "🔍 <b>Estado:</b> Tienes tu búsqueda de prueba gratuita disponible.",
+        "status_free_used": "🔍 <b>Estado:</b> Ya usaste tu búsqueda de prueba gratuita. Desbloquea 24h ilimitadas por {stars} ⭐.",
+        "free_trial_used": "\n\n<i>✅ Esa fue tu única búsqueda de prueba gratuita. La próxima vez, desbloquea 24h ilimitadas por {stars} ⭐.</i>",
         "disclaimer": "ℹ️ <i>Bot de IA — la información puede ser incompleta. Verifica siempre con el organizador.</i>",
         "error": "⚠️ Algo salió mal. Inténtalo de nuevo.",
         # Partner finder
