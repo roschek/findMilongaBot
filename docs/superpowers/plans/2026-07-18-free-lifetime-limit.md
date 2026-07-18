@@ -494,24 +494,13 @@ git commit -m "feat: switch status/paywall messaging to lifetime free-search mod
 ### Task 3: Finish localization (ru/he/es) and remove dead message keys
 
 **Files:**
-- Modify: `bot/messages.py` (ru/he/es: reworded `rate_limit`, new `status_free_available`/`status_free_used`/`free_trial_used`, remove old `status_free`/`searches_left`)
+- Modify: `bot/messages.py` (ru/he/es: new `status_free_available`/`status_free_used`/`free_trial_used`, remove old `status_free`/`searches_left`)
 - Test: Modify `tests/test_messages.py` (append; existing tests stay — `paywall_*` key tests and `rate_limit` `{stars}` check remain valid unchanged)
 
 **Interfaces:**
 - No new functions — string data only, mirroring Task 2's English additions into the other 3 language dicts.
 
-- [ ] **Step 1: Update `MSG["ru"]`**
-
-Replace:
-
-```python
-        "rate_limit": (
-            "⏳ Вы использовали все {limit} бесплатных поиска сегодня.\n\n"
-            "Откройте безлимит на 24 часа за {stars} ⭐."
-        ),
-```
-
-with:
+**Note:** `rate_limit` in `ru`/`he`/`es` was already reworded (dropped `{limit}`, matches the wording below) by a Task 2 review fix — a Critical bug was found where the paywall call site stopped passing `limit=...` but those 3 languages' `rate_limit` still required `{limit}`, causing a `KeyError` (silently no response to the user) for every non-English user who exhausted their free search. That fix already landed on `main`/this branch before this task starts. **Do not** look for the old `{limit}`-based `rate_limit` text in `ru`/`he`/`es` — it is already gone. Just skip straight to the `status_*`/`free_trial_used` changes below; if you want to confirm, `MSG["ru"]["rate_limit"]` should already read exactly:
 
 ```python
         "rate_limit": (
@@ -519,6 +508,10 @@ with:
             "Откройте безлимит на 24 часа за {stars} ⭐."
         ),
 ```
+
+The equivalent already-applied `rate_limit` text exists for `he` and `es` too (same wording pattern, translated) — Steps 2-3 below only show the `status_*` replacement blocks now, since the `rate_limit` part is already done for all three languages.
+
+- [ ] **Step 1: Update `MSG["ru"]`**
 
 Replace:
 
@@ -542,24 +535,6 @@ with:
 Replace:
 
 ```python
-        "rate_limit": (
-            "⏳ השתמשת בכל {limit} החיפושים החינמיים של היום.\n\n"
-            "פתח חיפוש ללא הגבלה ל-24 שעות תמורת {stars} ⭐."
-        ),
-```
-
-with:
-
-```python
-        "rate_limit": (
-            "⏳ החיפוש החינמי היחיד שלך כבר נוצל.\n\n"
-            "פתח חיפוש ללא הגבלה ל-24 שעות תמורת {stars} ⭐."
-        ),
-```
-
-Replace:
-
-```python
         "status_premium": "⭐ <b>סטטוס:</b> פרימיום עד <b>{until}</b>. חיפוש ללא הגבלה.",
         "status_free": "🔍 <b>סטטוס:</b> תוכנית חינמית — נותרו <b>{remaining}</b> מתוך {limit} חיפושים היום.",
         "searches_left": "\n<i>(נותרו {remaining} חיפוש/ים היום)</i>",
@@ -575,24 +550,6 @@ with:
 ```
 
 - [ ] **Step 3: Update `MSG["es"]`**
-
-Replace:
-
-```python
-        "rate_limit": (
-            "⏳ Has usado las {limit} búsquedas gratuitas de hoy.\n\n"
-            "Desbloquea búsquedas ilimitadas por 24 horas por {stars} ⭐."
-        ),
-```
-
-with:
-
-```python
-        "rate_limit": (
-            "⏳ Ya usaste tu única búsqueda de prueba gratuita.\n\n"
-            "Desbloquea búsquedas ilimitadas por 24 horas por {stars} ⭐."
-        ),
-```
 
 Replace:
 
