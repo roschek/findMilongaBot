@@ -12,6 +12,10 @@ def test_slugify_lowercases_and_hyphenates():
     assert gotango._slugify("Kyiv") == "kyiv"
 
 
+def test_slugify_transliterates_accented_characters():
+    assert gotango._slugify("São Paulo") == "sao-paulo"
+
+
 def test_gotango_city_url_uses_slug():
     assert gotango.gotango_city_url("Buenos Aires") == "https://www.gotango.today/en/buenos-aires"
 

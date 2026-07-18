@@ -1,4 +1,5 @@
 import re
+import unicodedata
 
 import httpx
 from bs4 import BeautifulSoup
@@ -16,7 +17,8 @@ _HEADERS = {
 
 
 def _slugify(city: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", city.lower()).strip("-")
+    ascii_city = unicodedata.normalize("NFKD", city).encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"[^a-z0-9]+", "-", ascii_city.lower()).strip("-")
 
 
 def gotango_city_url(city: str) -> str:
