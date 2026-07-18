@@ -57,7 +57,7 @@ MSG: dict[str, dict[str, str]] = {
         "status_premium": "⭐ <b>Status:</b> Premium until <b>{until}</b>. Unlimited searches.",
         "status_free_available": "🔍 <b>Status:</b> You have your one free trial search available.",
         "status_free_used": "🔍 <b>Status:</b> Free trial search already used. Unlock 24h unlimited for {stars} ⭐.",
-        "free_trial_used": "\n\n<i>✅ That was your one free trial search. Next time, unlock 24h unlimited for {stars} ⭐.</i>",
+        "free_trial_used": "\n\n<i>✅ That was a test search. Next time, unlock 24h unlimited for {stars} ⭐.</i>",
         "disclaimer": "ℹ️ <i>AI-powered bot — info may be incomplete. Always verify with the organizer.</i>",
         "error": "⚠️ Something went wrong. Please try again.",
         # Partner finder
@@ -164,7 +164,7 @@ MSG: dict[str, dict[str, str]] = {
         "status_premium": "⭐ <b>Статус:</b> Премиум до <b>{until}</b>. Безлимитный поиск.",
         "status_free_available": "🔍 <b>Статус:</b> У вас есть один бесплатный пробный поиск.",
         "status_free_used": "🔍 <b>Статус:</b> Бесплатный поиск уже использован. Доступ на сутки — {stars} ⭐.",
-        "free_trial_used": "\n\n<i>✅ Это был ваш единственный бесплатный поиск. В следующий раз — {stars} ⭐ за сутки безлимита.</i>",
+        "free_trial_used": "\n\n<i>✅ Это был тестовый поиск. В следующий раз — {stars} ⭐ за сутки безлимита.</i>",
         "disclaimer": "ℹ️ <i>Бот на основе ИИ — информация может быть неполной. Уточняйте у организаторов.</i>",
         "error": "⚠️ Что-то пошло не так. Попробуйте ещё раз.",
         # Partner finder
@@ -271,7 +271,7 @@ MSG: dict[str, dict[str, str]] = {
         "status_premium": "⭐ <b>סטטוס:</b> פרימיום עד <b>{until}</b>. חיפוש ללא הגבלה.",
         "status_free_available": "🔍 <b>סטטוס:</b> יש לך חיפוש ניסיון חינמי אחד זמין.",
         "status_free_used": "🔍 <b>סטטוס:</b> חיפוש הניסיון החינמי כבר נוצל. פתח גישה ללא הגבלה ל-24 שעות תמורת {stars} ⭐.",
-        "free_trial_used": "\n\n<i>✅ זה היה חיפוש הניסיון החינמי היחיד שלך. בפעם הבאה — {stars} ⭐ לגישה ללא הגבלה ל-24 שעות.</i>",
+        "free_trial_used": "\n\n<i>✅ זה היה חיפוש בדיקה. בפעם הבאה — {stars} ⭐ לגישה ללא הגבלה ל-24 שעות.</i>",
         "disclaimer": "ℹ️ <i>בוט מבוסס בינה מלאכותית — המידע עשוי להיות חלקי. תמיד בדקו עם המארגן.</i>",
         "error": "⚠️ משהו השתבש. נסה שוב.",
         # Partner finder
@@ -378,7 +378,7 @@ MSG: dict[str, dict[str, str]] = {
         "status_premium": "⭐ <b>Estado:</b> Premium hasta <b>{until}</b>. Búsquedas ilimitadas.",
         "status_free_available": "🔍 <b>Estado:</b> Tienes tu búsqueda de prueba gratuita disponible.",
         "status_free_used": "🔍 <b>Estado:</b> Ya usaste tu búsqueda de prueba gratuita. Desbloquea 24h ilimitadas por {stars} ⭐.",
-        "free_trial_used": "\n\n<i>✅ Esa fue tu única búsqueda de prueba gratuita. La próxima vez, desbloquea 24h ilimitadas por {stars} ⭐.</i>",
+        "free_trial_used": "\n\n<i>✅ Esa fue una búsqueda de prueba. La próxima vez, desbloquea 24h ilimitadas por {stars} ⭐.</i>",
         "disclaimer": "ℹ️ <i>Bot de IA — la información puede ser incompleta. Verifica siempre con el organizador.</i>",
         "error": "⚠️ Algo salió mal. Inténtalo de nuevo.",
         # Partner finder
