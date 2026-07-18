@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest.mock import AsyncMock
 
 from app import gotango
 
@@ -57,3 +58,24 @@ def test_parse_events_extracts_fields_and_filters_by_type():
 def test_parse_events_returns_empty_list_for_no_grids():
     events = gotango._parse_events("<html><body>no events here</body></html>", ["2026-07-18"])
     assert events == []
+
+
+def test_rendered_successfully_true_when_grids_present():
+    html = FIXTURE.read_text(encoding="utf-8")
+    assert gotango._rendered_successfully(html) is True
+
+
+def test_rendered_successfully_false_when_grids_absent():
+    # Mirrors what a stalled/incomplete Jina render of a real, covered city
+    # looks like: a full page shell, but the event-card grids never hydrated.
+    html = "<html><body><div hidden><!--$--><!--/$--></div></body></html>"
+    assert gotango._rendered_successfully(html) is False
+
+
+async def test_fetch_gotango_events_returns_none_when_render_incomplete(monkeypatch):
+    incomplete_html = "<html><body><div hidden><!--$--><!--/$--></div></body></html>"
+    monkeypatch.setattr(gotango, "_fetch_gotango_html", AsyncMock(return_value=incomplete_html))
+
+    events = await gotango.fetch_gotango_events("Paris", ["2026-07-18"])
+
+    assert events is None

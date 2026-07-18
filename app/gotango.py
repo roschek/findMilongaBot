@@ -94,11 +94,15 @@ def _parse_card(card, event_date: str) -> MilongaEvent | None:
     )
 
 
-def _parse_events(html: str, dates: list[str]) -> list[MilongaEvent]:
-    soup = BeautifulSoup(html, "html.parser")
-    grids = soup.find_all(
+def _find_grids(soup: BeautifulSoup) -> list:
+    return soup.find_all(
         lambda t: t.name == "div" and "grid" in _classes(t) and "gap-4" in _classes(t)
     )
+
+
+def _parse_events(html: str, dates: list[str]) -> list[MilongaEvent]:
+    soup = BeautifulSoup(html, "html.parser")
+    grids = _find_grids(soup)
 
     events: list[MilongaEvent] = []
     for event_date, grid in zip(dates, grids):
@@ -107,6 +111,17 @@ def _parse_events(html: str, dates: list[str]) -> list[MilongaEvent]:
             if event:
                 events.append(event)
     return events
+
+
+def _rendered_successfully(html: str) -> bool:
+    """gotango.today's date-section grids should always render for a covered
+    city, even on a genuinely empty day — the section header and grid wrapper
+    are part of the page shell. Zero grids at all means the page's data didn't
+    finish loading before we captured it, not a real "nothing scheduled"
+    answer — treating it as such would silently tell users a covered city has
+    no events when we simply failed to read the page."""
+    soup = BeautifulSoup(html, "html.parser")
+    return bool(_find_grids(soup))
 
 
 async def _fetch_gotango_html(slug: str, date_from: str, date_to: str) -> str | None:
@@ -142,5 +157,7 @@ async def fetch_gotango_events(city: str, dates: list[str]) -> list[MilongaEvent
     slug = _slugify(city)
     html = await _fetch_gotango_html(slug, dates[0], dates[-1])
     if html is None:
+        return None
+    if not _rendered_successfully(html):
         return None
     return _parse_events(html, dates)
