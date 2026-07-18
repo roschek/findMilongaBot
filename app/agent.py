@@ -10,6 +10,7 @@ from google.genai import types
 from .tools import read_website, read_ics
 from .models import MilongaEvent, MilongaResponse
 from . import site_db
+from .gotango import fetch_gotango_events, gotango_city_url
 from .redis_client import get_redis as _get_redis, _ttl_until_midnight
 
 SYSTEM_PROMPT = """You are a tango event research assistant.
@@ -360,6 +361,25 @@ async def run_milonga_agent(city: str, date: str, days_ahead: int = 3) -> Milong
             sources_checked=[],
             city_found=False,
         )
+
+    gotango_events = await fetch_gotango_events(canonical_city, dates)
+    if gotango_events is not None:
+        gotango_url = gotango_city_url(canonical_city)
+        result = MilongaResponse(
+            city=canonical_city,
+            date=date,
+            events=gotango_events,
+            uncertainties=[],
+            sources_found=[gotango_url],
+            sources_checked=[gotango_url],
+            city_found=True,
+        )
+        if r:
+            try:
+                await r.set(cache_key, result.model_dump_json(), ex=_ttl_until_midnight())
+            except Exception:
+                pass
+        return result
 
     known_sites = await site_db.get_schedule_sites(canonical_city)
     known_ics = await site_db.get_ics_feeds(canonical_city)

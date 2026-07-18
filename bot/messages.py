@@ -42,16 +42,22 @@ MSG: dict[str, dict[str, str]] = {
         "donate_desc_30": "Unlock 30 days of unlimited searches in Milonga Finder",
         "donate_desc_90": "Unlock 90 days of unlimited searches in Milonga Finder",
         "donate_thanks": "🙏 Thank you so much! Your support means a lot. ❤️",
+        "paywall_button": "🔓 Unlock 24h — {stars} ⭐",
+        "paywall_invoice_title": "24-hour unlimited access",
+        "paywall_invoice_desc": "Unlock unlimited milonga searches for 24 hours",
+        "paywall_thanks": "✅ Unlimited access unlocked for 24 hours!\nSearching in <b>{city}</b>…",
+        "paywall_unlocked": "✅ Unlimited access unlocked for 24 hours! Send me a city to search.",
         "rate_limit": (
-            "⏳ You've used all {limit} free searches for today.\n\n"
-            "Support the project to unlock unlimited searches! ☕"
+            "⏳ Your one free trial search is already used.\n\n"
+            "Unlock unlimited searches for 24 hours for {stars} ⭐."
         ),
         "premium_granted": (
             "🎉 Thank you! Unlimited searches unlocked for <b>{days} days</b> (until {until}). ❤️"
         ),
         "status_premium": "⭐ <b>Status:</b> Premium until <b>{until}</b>. Unlimited searches.",
-        "status_free": "🔍 <b>Status:</b> Free plan — <b>{remaining}</b> of {limit} searches left today.",
-        "searches_left": "\n<i>({remaining} free search(es) left today)</i>",
+        "status_free_available": "🔍 <b>Status:</b> You have your one free trial search available.",
+        "status_free_used": "🔍 <b>Status:</b> Free trial search already used. Unlock 24h unlimited for {stars} ⭐.",
+        "free_trial_used": "\n\n<i>✅ That was a test search. Next time, unlock 24h unlimited for {stars} ⭐.</i>",
         "disclaimer": "ℹ️ <i>AI-powered bot — info may be incomplete. Always verify with the organizer.</i>",
         "error": "⚠️ Something went wrong. Please try again.",
         # Partner finder
@@ -143,16 +149,22 @@ MSG: dict[str, dict[str, str]] = {
         "donate_desc_30": "30 дней безлимитного поиска в Milonga Finder",
         "donate_desc_90": "90 дней безлимитного поиска в Milonga Finder",
         "donate_thanks": "🙏 Большое спасибо! Ваша поддержка очень важна. ❤️",
+        "paywall_button": "🔓 Открыть на сутки — {stars} ⭐",
+        "paywall_invoice_title": "Безлимит на 24 часа",
+        "paywall_invoice_desc": "Безлимитный поиск милонг в течение 24 часов",
+        "paywall_thanks": "✅ Безлимит открыт на 24 часа!\nИщу в <b>{city}</b>…",
+        "paywall_unlocked": "✅ Безлимит открыт на 24 часа! Отправьте город для поиска.",
         "rate_limit": (
-            "⏳ Вы использовали все {limit} бесплатных поиска сегодня.\n\n"
-            "Поддержите проект и получите безлимитный поиск! ☕"
+            "⏳ Ваш единственный бесплатный поиск уже использован.\n\n"
+            "Откройте безлимит на 24 часа за {stars} ⭐."
         ),
         "premium_granted": (
             "🎉 Спасибо! Безлимит активирован на <b>{days} дней</b> (до {until}). ❤️"
         ),
         "status_premium": "⭐ <b>Статус:</b> Премиум до <b>{until}</b>. Безлимитный поиск.",
-        "status_free": "🔍 <b>Статус:</b> Бесплатный план — осталось <b>{remaining}</b> из {limit} поисков сегодня.",
-        "searches_left": "\n<i>(осталось {remaining} поиск(а) сегодня)</i>",
+        "status_free_available": "🔍 <b>Статус:</b> У вас есть один бесплатный пробный поиск.",
+        "status_free_used": "🔍 <b>Статус:</b> Бесплатный поиск уже использован. Доступ на сутки — {stars} ⭐.",
+        "free_trial_used": "\n\n<i>✅ Это был тестовый поиск. В следующий раз — {stars} ⭐ за сутки безлимита.</i>",
         "disclaimer": "ℹ️ <i>Бот на основе ИИ — информация может быть неполной. Уточняйте у организаторов.</i>",
         "error": "⚠️ Что-то пошло не так. Попробуйте ещё раз.",
         # Partner finder
@@ -244,16 +256,22 @@ MSG: dict[str, dict[str, str]] = {
         "donate_desc_30": "30 ימי חיפוש ללא הגבלה ב-Milonga Finder",
         "donate_desc_90": "90 ימי חיפוש ללא הגבלה ב-Milonga Finder",
         "donate_thanks": "🙏 תודה רבה! התמיכה שלך מאוד חשובה. ❤️",
+        "paywall_button": "🔓 פתח ל-24 שעות — {stars} ⭐",
+        "paywall_invoice_title": "גישה ללא הגבלה ל-24 שעות",
+        "paywall_invoice_desc": "פתח חיפוש מילונגות ללא הגבלה למשך 24 שעות",
+        "paywall_thanks": "✅ הגישה נפתחה ל-24 שעות!\nמחפש ב-<b>{city}</b>…",
+        "paywall_unlocked": "✅ הגישה נפתחה ל-24 שעות! שלח שם עיר לחיפוש.",
         "rate_limit": (
-            "⏳ השתמשת בכל {limit} החיפושים החינמיים של היום.\n\n"
-            "תמוך בפרויקט וקבל חיפוש ללא הגבלה! ☕"
+            "⏳ החיפוש החינמי היחיד שלך כבר נוצל.\n\n"
+            "פתח חיפוש ללא הגבלה ל-24 שעות תמורת {stars} ⭐."
         ),
         "premium_granted": (
             "🎉 תודה! חיפוש ללא הגבלה פעיל ל-<b>{days} ימים</b> (עד {until}). ❤️"
         ),
         "status_premium": "⭐ <b>סטטוס:</b> פרימיום עד <b>{until}</b>. חיפוש ללא הגבלה.",
-        "status_free": "🔍 <b>סטטוס:</b> תוכנית חינמית — נותרו <b>{remaining}</b> מתוך {limit} חיפושים היום.",
-        "searches_left": "\n<i>(נותרו {remaining} חיפוש/ים היום)</i>",
+        "status_free_available": "🔍 <b>סטטוס:</b> יש לך חיפוש ניסיון חינמי אחד זמין.",
+        "status_free_used": "🔍 <b>סטטוס:</b> חיפוש הניסיון החינמי כבר נוצל. פתח גישה ללא הגבלה ל-24 שעות תמורת {stars} ⭐.",
+        "free_trial_used": "\n\n<i>✅ זה היה חיפוש בדיקה. בפעם הבאה — {stars} ⭐ לגישה ללא הגבלה ל-24 שעות.</i>",
         "disclaimer": "ℹ️ <i>בוט מבוסס בינה מלאכותית — המידע עשוי להיות חלקי. תמיד בדקו עם המארגן.</i>",
         "error": "⚠️ משהו השתבש. נסה שוב.",
         # Partner finder
@@ -345,16 +363,22 @@ MSG: dict[str, dict[str, str]] = {
         "donate_desc_30": "30 días de búsquedas ilimitadas en Milonga Finder",
         "donate_desc_90": "90 días de búsquedas ilimitadas en Milonga Finder",
         "donate_thanks": "🙏 ¡Muchas gracias! Tu apoyo es muy importante. ❤️",
+        "paywall_button": "🔓 Desbloquear 24h — {stars} ⭐",
+        "paywall_invoice_title": "Acceso ilimitado por 24 horas",
+        "paywall_invoice_desc": "Desbloquea búsquedas ilimitadas de milongas por 24 horas",
+        "paywall_thanks": "✅ ¡Acceso ilimitado desbloqueado por 24 horas!\nBuscando en <b>{city}</b>…",
+        "paywall_unlocked": "✅ ¡Acceso ilimitado desbloqueado por 24 horas! Envíame una ciudad para buscar.",
         "rate_limit": (
-            "⏳ Has usado las {limit} búsquedas gratuitas de hoy.\n\n"
-            "¡Apoya el proyecto y desbloquea búsquedas ilimitadas! ☕"
+            "⏳ Ya usaste tu única búsqueda de prueba gratuita.\n\n"
+            "Desbloquea búsquedas ilimitadas por 24 horas por {stars} ⭐."
         ),
         "premium_granted": (
             "🎉 ¡Gracias! Búsquedas ilimitadas activadas por <b>{days} días</b> (hasta {until}). ❤️"
         ),
         "status_premium": "⭐ <b>Estado:</b> Premium hasta <b>{until}</b>. Búsquedas ilimitadas.",
-        "status_free": "🔍 <b>Estado:</b> Plan gratuito — quedan <b>{remaining}</b> de {limit} búsquedas hoy.",
-        "searches_left": "\n<i>(quedan {remaining} búsqueda(s) hoy)</i>",
+        "status_free_available": "🔍 <b>Estado:</b> Tienes tu búsqueda de prueba gratuita disponible.",
+        "status_free_used": "🔍 <b>Estado:</b> Ya usaste tu búsqueda de prueba gratuita. Desbloquea 24h ilimitadas por {stars} ⭐.",
+        "free_trial_used": "\n\n<i>✅ Esa fue una búsqueda de prueba. La próxima vez, desbloquea 24h ilimitadas por {stars} ⭐.</i>",
         "disclaimer": "ℹ️ <i>Bot de IA — la información puede ser incompleta. Verifica siempre con el organizador.</i>",
         "error": "⚠️ Algo salió mal. Inténtalo de nuevo.",
         # Partner finder

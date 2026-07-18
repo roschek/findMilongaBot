@@ -34,7 +34,14 @@ logging.basicConfig(level=logging.INFO)
 from app.agent import run_milonga_agent
 from app.redis_client import get_redis as _get_redis
 from bot.messages import get_lang, t
-from bot.limits import check_and_increment, get_status, get_search_stats, FREE_DAILY_LIMIT
+from bot.limits import (
+    check_and_increment,
+    get_status,
+    get_search_stats,
+    grant_premium,
+    PAID_SEARCH_STARS,
+    PAID_SEARCH_DAYS,
+)
 from bot.partner import (
     add_notify,
     get_partner,
@@ -77,6 +84,15 @@ def _donate_kb(lang: str) -> InlineKeyboardMarkup:
     rows.append([InlineKeyboardButton(t(lang, "donate_custom"), callback_data="custom_stars")])
     rows.append([InlineKeyboardButton(t(lang, "close"), callback_data="close_donate")])
     return InlineKeyboardMarkup(rows)
+
+
+def _paywall_kb(lang: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([[
+        InlineKeyboardButton(
+            t(lang, "paywall_button").format(stars=PAID_SEARCH_STARS),
+            callback_data="buy_search_pass",
+        )
+    ]])
 
 
 def _sources_line(sources_checked: list[str]) -> str:
@@ -145,9 +161,12 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     lang = _lang(context, update.effective_user)
     status = await get_status(update.effective_user.id)
-    text = t(lang, "status_free").format(
-        remaining=status["remaining"], limit=FREE_DAILY_LIMIT
-    )
+    if status["premium"]:
+        text = t(lang, "status_premium").format(until=status["premium_until"])
+    elif status["remaining"] > 0:
+        text = t(lang, "status_free_available")
+    else:
+        text = t(lang, "status_free_used").format(stars=PAID_SEARCH_STARS)
     await update.message.reply_text(text, parse_mode="HTML", reply_markup=_main_menu_kb(lang))
 
 
@@ -176,6 +195,8 @@ async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f"  Today: {s['partner_requests_today']}  |  All time: {s['partner_requests_total']}\n\n"
         f"⭐ <b>Donations</b>\n"
         f"  Today: {s['donations_stars_today']}  |  All time: {s['donations_stars_total']}\n\n"
+        f"🔓 <b>Paid access</b>\n"
+        f"  Today: {s['paid_access_stars_today']} ⭐  |  All time: {s['paid_access_stars_total']} ⭐\n\n"
         f"🔝 <b>Top cities</b>\n{cities_lines}",
         parse_mode="HTML",
     )
@@ -234,6 +255,19 @@ async def cb_stars(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         provider_token="",
         currency="XTR",
         prices=[LabeledPrice(t(lang, "donate_title"), stars)],
+    )
+
+
+async def cb_buy_search_pass(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.callback_query.answer()
+    lang = _lang(context, update.effective_user)
+    await update.callback_query.message.reply_invoice(
+        title=t(lang, "paywall_invoice_title"),
+        description=t(lang, "paywall_invoice_desc"),
+        payload="searchpass",
+        provider_token="",
+        currency="XTR",
+        prices=[LabeledPrice(t(lang, "paywall_invoice_title"), PAID_SEARCH_STARS)],
     )
 
 
@@ -673,13 +707,21 @@ async def handle_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     allowed, remaining = await check_and_increment(user_id)
     if not allowed:
         logging.info("rate_limit user=%d city=%r", user_id, city)
+        context.user_data["pending_city"] = city
         await update.message.reply_text(
-            t(lang, "rate_limit").format(limit=FREE_DAILY_LIMIT),
+            t(lang, "rate_limit").format(stars=PAID_SEARCH_STARS),
             parse_mode="HTML",
-            reply_markup=_donate_kb(lang),
+            reply_markup=_paywall_kb(lang),
         )
         return
 
+    await _run_search(update, context, lang, city, remaining)
+
+
+async def _run_search(
+    update: Update, context: ContextTypes.DEFAULT_TYPE, lang: str, city: str, remaining: int
+) -> None:
+    user_id = update.effective_user.id
     logging.info("search_start user=%d city=%r lang=%s", user_id, city, lang)
     t0 = time.monotonic()
 
@@ -735,9 +777,9 @@ async def handle_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     except Exception:
         pass
 
-    # Hint about remaining searches when running low (free users only)
-    if 0 < remaining <= 2:
-        text += t(lang, "searches_left").format(remaining=remaining)
+    # Tell the user their one lifetime free search is now used up
+    if remaining == 0:
+        text += t(lang, "free_trial_used").format(stars=PAID_SEARCH_STARS)
 
     text += "\n\n" + t(lang, "disclaimer")
 
@@ -759,8 +801,35 @@ async def pre_checkout(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def successful_payment(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     lang = _lang(context, update.effective_user)
+    payload = update.message.successful_payment.invoice_payload
     stars = update.message.successful_payment.total_amount
-    logging.info("donation user=%d stars=%d", update.effective_user.id, stars)
+    user_id = update.effective_user.id
+
+    if payload == "searchpass":
+        logging.info("paid_access user=%d stars=%d", user_id, stars)
+        await grant_premium(user_id, days=PAID_SEARCH_DAYS)
+        try:
+            _r = _get_redis()
+            if _r:
+                _today = str(date.today())
+                await _r.hincrby(f"stats:day:{_today}", "paid_access_stars", stars)
+                await _r.hincrby("stats:totals", "paid_access_stars", stars)
+        except Exception:
+            pass
+
+        city = context.user_data.pop("pending_city", None)
+        if city:
+            await update.message.reply_text(
+                t(lang, "paywall_thanks").format(city=city), parse_mode="HTML"
+            )
+            await _run_search(update, context, lang, city, -1)
+        else:
+            await update.message.reply_text(
+                t(lang, "paywall_unlocked"), parse_mode="HTML", reply_markup=_main_menu_kb(lang)
+            )
+        return
+
+    logging.info("donation user=%d stars=%d", user_id, stars)
     try:
         _r = _get_redis()
         if _r:
@@ -786,6 +855,7 @@ def main() -> None:
     app.add_handler(CallbackQueryHandler(cb_donate, pattern="^donate$"))
     app.add_handler(CallbackQueryHandler(cb_close_donate, pattern="^close_donate$"))
     app.add_handler(CallbackQueryHandler(cb_stars, pattern=r"^stars_\d+$"))
+    app.add_handler(CallbackQueryHandler(cb_buy_search_pass, pattern="^buy_search_pass$"))
     app.add_handler(CallbackQueryHandler(cb_custom_stars, pattern="^custom_stars$"))
     app.add_handler(CallbackQueryHandler(cb_partner_start, pattern="^partner_start$"))
     app.add_handler(CallbackQueryHandler(cb_partner_role, pattern=r"^partner_role_(leader|follower|both)$"))

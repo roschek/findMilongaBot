@@ -5,8 +5,9 @@ from pathlib import Path
 from app.redis_client import get_redis as _redis, _ttl_until_midnight
 
 _DB_PATH = Path(__file__).parent.parent / "users_db.json"
-FREE_DAILY_LIMIT = 5
 PREMIUM_DAYS = 30
+PAID_SEARCH_STARS = 150
+PAID_SEARCH_DAYS = 1
 _REDIS_KEY = "users_db"
 
 
@@ -47,8 +48,8 @@ def _entry(data: dict, user_id: int) -> dict:
 async def check_and_increment(user_id: int) -> tuple[bool, int]:
     """
     Returns (allowed, remaining).
-    remaining = -1 means premium (unlimited).
-    Increments counter if allowed.
+    remaining = -1 means premium (unlimited); 0 means the one lifetime free
+    search was just granted (allowed=True) or is already exhausted (allowed=False).
     """
     today = str(date.today())
     r = _redis()
@@ -61,31 +62,31 @@ async def check_and_increment(user_id: int) -> tuple[bool, int]:
             if premium_until and premium_until >= today:
                 return True, -1
 
-            # Atomic rate-limit increment
-            rl_key = f"rl:{user_id}:{today}"
-            count = await r.incr(rl_key)
-            if count == 1:
-                await r.expire(rl_key, _ttl_until_midnight())
-            if count > FREE_DAILY_LIMIT:
-                return False, 0
+            is_known = await r.sismember("stats:known_users", str(user_id))
+            allowed = not is_known
         except Exception:
             pass
         else:
-            # Non-critical stats — isolated so failures never affect rate-limit result
+            # Non-critical stats — isolated so failures never affect the gating result
             try:
                 day_key = f"stats:day:{today}"
                 await r.hincrby(day_key, "searches", 1)
                 await r.hincrby("stats:totals", "searches", 1)
-                if count == 1:
+
+                active_key = f"stats:active_users:{today}"
+                active_added = await r.sadd(active_key, str(user_id))
+                if active_added == 1:
                     await r.hincrby(day_key, "active", 1)
+                    await r.expire(active_key, _ttl_until_midnight() + 86400)
                     # Keep day key for ~2 days so yesterday's stats survive past midnight
                     await r.expire(day_key, _ttl_until_midnight() + 86400)
-                added = await r.sadd("stats:known_users", str(user_id))
-                if added == 1:
+
+                known_added = await r.sadd("stats:known_users", str(user_id))
+                if known_added == 1:
                     await r.hincrby(day_key, "new_users", 1)
             except Exception:
                 pass
-            return True, FREE_DAILY_LIMIT - count
+            return allowed, 0
 
     # File fallback (local dev — sequential PTB updates, no race condition in practice)
     data = await _load()
@@ -95,21 +96,18 @@ async def check_and_increment(user_id: int) -> tuple[bool, int]:
     if premium_until and premium_until >= today:
         return True, -1
 
-    if entry.get("date") != today:
-        entry["date"] = today
-        entry["count"] = 0
-
-    count = entry.get("count", 0)
-    if count >= FREE_DAILY_LIMIT:
+    if entry.get("free_used"):
         return False, 0
 
-    entry["count"] = count + 1
+    entry["free_used"] = True
     await _save(data)
-    return True, FREE_DAILY_LIMIT - count - 1
+    return True, 0
 
 
 async def get_status(user_id: int) -> dict:
-    """Returns {"premium": bool, "premium_until": str|None, "remaining": int|-1}."""
+    """Returns {"premium": bool, "premium_until": str|None, "remaining": int}.
+    remaining: -1 = premium (unlimited), 1 = free search still available, 0 = free search used.
+    """
     data = await _load()
     entry = data.get(str(user_id), {})
     today = str(date.today())
@@ -120,13 +118,12 @@ async def get_status(user_id: int) -> dict:
     r = _redis()
     if r:
         try:
-            val = await r.get(f"rl:{user_id}:{today}")
-            used = int(val) if val else 0
-            return {"premium": False, "premium_until": None, "remaining": max(0, FREE_DAILY_LIMIT - used)}
+            is_known = await r.sismember("stats:known_users", str(user_id))
+            return {"premium": False, "premium_until": None, "remaining": 0 if is_known else 1}
         except Exception:
             pass
-    used = entry.get("count", 0) if entry.get("date") == today else 0
-    return {"premium": False, "premium_until": premium_until, "remaining": max(0, FREE_DAILY_LIMIT - used)}
+    free_used = bool(entry.get("free_used"))
+    return {"premium": False, "premium_until": premium_until, "remaining": 0 if free_used else 1}
 
 
 async def get_search_stats() -> dict:
@@ -144,8 +141,10 @@ async def get_search_stats() -> dict:
         "result_notfound": 0,
         "partner_requests_today": 0,
         "donations_stars_today": 0,
+        "paid_access_stars_today": 0,
         "searches_total": 0,
         "donations_stars_total": 0,
+        "paid_access_stars_total": 0,
         "partner_requests_total": 0,
         "top_cities": [],
     }
@@ -169,8 +168,10 @@ async def get_search_stats() -> dict:
             "result_notfound": _i(day_raw, "result_notfound"),
             "partner_requests_today": _i(day_raw, "partner_requests"),
             "donations_stars_today": _i(day_raw, "donations_stars"),
+            "paid_access_stars_today": _i(day_raw, "paid_access_stars"),
             "searches_total": _i(totals_raw, "searches"),
             "donations_stars_total": _i(totals_raw, "donations_stars"),
+            "paid_access_stars_total": _i(totals_raw, "paid_access_stars"),
             "partner_requests_total": _i(totals_raw, "partner_requests"),
             "top_cities": [(c, int(s)) for c, s in cities_raw],
         }
