@@ -1,3 +1,4 @@
+import asyncio
 import re
 import unicodedata
 
@@ -94,11 +95,15 @@ def _parse_card(card, event_date: str) -> MilongaEvent | None:
     )
 
 
-def _parse_events(html: str, dates: list[str]) -> list[MilongaEvent]:
-    soup = BeautifulSoup(html, "html.parser")
-    grids = soup.find_all(
+def _find_grids(soup: BeautifulSoup) -> list:
+    return soup.find_all(
         lambda t: t.name == "div" and "grid" in _classes(t) and "gap-4" in _classes(t)
     )
+
+
+def _parse_events(html: str, dates: list[str]) -> list[MilongaEvent]:
+    soup = BeautifulSoup(html, "html.parser")
+    grids = _find_grids(soup)
 
     events: list[MilongaEvent] = []
     for event_date, grid in zip(dates, grids):
@@ -109,8 +114,31 @@ def _parse_events(html: str, dates: list[str]) -> list[MilongaEvent]:
     return events
 
 
+def _rendered_successfully(html: str) -> bool:
+    """gotango.today's date-section grids should always render for a covered
+    city, even on a genuinely empty day — the section header and grid wrapper
+    are part of the page shell. Zero grids at all means the page's data didn't
+    finish loading before we captured it, not a real "nothing scheduled"
+    answer — treating it as such would silently tell users a covered city has
+    no events when we simply failed to read the page."""
+    soup = BeautifulSoup(html, "html.parser")
+    return bool(_find_grids(soup))
+
+
+_JINA_MAX_ATTEMPTS = 3
+_JINA_RETRY_DELAY_SECONDS = 3
+
+
 async def _fetch_gotango_html(slug: str, date_from: str, date_to: str) -> str | None:
-    """Returns the rendered HTML if gotango.today covers this city, None if it 404s."""
+    """Returns the rendered HTML if gotango.today covers this city, None if it 404s.
+
+    gotango.today's client-side data fetch is sometimes slow enough that Jina
+    captures the page before the event cards hydrate (Jina's own wait/timeout
+    headers are unreliable — see project notes). Retrying a few times with a
+    short delay gives the site more chances to respond in time; if it never
+    does, we still return the last (possibly unrendered) HTML we got, and
+    fetch_gotango_events treats that as inconclusive rather than "no events".
+    """
     url = f"https://www.gotango.today/en/{slug}?from={date_from}&to={date_to}"
 
     try:
@@ -121,16 +149,23 @@ async def _fetch_gotango_html(slug: str, date_from: str, date_to: str) -> str | 
     if direct.status_code != 200:
         return None
 
-    try:
-        async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
-            rendered = await client.get(
-                f"https://r.jina.ai/{url}",
-                headers={**_HEADERS, "X-Return-Format": "html"},
-            )
-            rendered.raise_for_status()
-    except Exception:
-        return None
-    return rendered.text
+    last_html: str | None = None
+    for attempt in range(_JINA_MAX_ATTEMPTS):
+        try:
+            async with httpx.AsyncClient(timeout=25, follow_redirects=True) as client:
+                rendered = await client.get(
+                    f"https://r.jina.ai/{url}",
+                    headers={**_HEADERS, "X-Return-Format": "html"},
+                )
+                rendered.raise_for_status()
+        except Exception:
+            continue
+        last_html = rendered.text
+        if _rendered_successfully(last_html):
+            return last_html
+        if attempt < _JINA_MAX_ATTEMPTS - 1:
+            await asyncio.sleep(_JINA_RETRY_DELAY_SECONDS)
+    return last_html
 
 
 async def fetch_gotango_events(city: str, dates: list[str]) -> list[MilongaEvent] | None:
@@ -142,5 +177,7 @@ async def fetch_gotango_events(city: str, dates: list[str]) -> list[MilongaEvent
     slug = _slugify(city)
     html = await _fetch_gotango_html(slug, dates[0], dates[-1])
     if html is None:
+        return None
+    if not _rendered_successfully(html):
         return None
     return _parse_events(html, dates)
