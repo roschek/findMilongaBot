@@ -118,3 +118,20 @@ async def test_get_status_redis_reflects_known_users(monkeypatch):
 
     assert before == {"premium": False, "premium_until": None, "remaining": 1}
     assert after == {"premium": False, "premium_until": None, "remaining": 0}
+
+
+async def test_check_and_increment_admin_always_allowed_unlimited(monkeypatch):
+    fake = FakeRedis()
+    monkeypatch.setattr(limits, "_redis", lambda: fake)
+
+    for _ in range(3):
+        allowed, remaining = await limits.check_and_increment(limits.ADMIN_ID)
+        assert (allowed, remaining) == (True, -1)
+
+    assert await fake.sismember("stats:known_users", str(limits.ADMIN_ID)) is False
+
+
+async def test_get_status_admin_is_always_premium():
+    status = await limits.get_status(limits.ADMIN_ID)
+    assert status["premium"] is True
+    assert status["remaining"] == -1

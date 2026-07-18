@@ -8,7 +8,9 @@ _DB_PATH = Path(__file__).parent.parent / "users_db.json"
 PREMIUM_DAYS = 30
 PAID_SEARCH_STARS = 150
 PAID_SEARCH_DAYS = 1
+ADMIN_ID = 847615855
 _REDIS_KEY = "users_db"
+_ADMIN_PREMIUM_UNTIL = "9999-12-31"
 
 
 async def _load() -> dict:
@@ -51,6 +53,9 @@ async def check_and_increment(user_id: int) -> tuple[bool, int]:
     remaining = -1 means premium (unlimited); 0 means the one lifetime free
     search was just granted (allowed=True) or is already exhausted (allowed=False).
     """
+    if user_id == ADMIN_ID:
+        return True, -1
+
     today = str(date.today())
     r = _redis()
 
@@ -108,6 +113,9 @@ async def get_status(user_id: int) -> dict:
     """Returns {"premium": bool, "premium_until": str|None, "remaining": int}.
     remaining: -1 = premium (unlimited), 1 = free search still available, 0 = free search used.
     """
+    if user_id == ADMIN_ID:
+        return {"premium": True, "premium_until": _ADMIN_PREMIUM_UNTIL, "remaining": -1}
+
     data = await _load()
     entry = data.get(str(user_id), {})
     today = str(date.today())
