@@ -39,6 +39,7 @@ from bot.limits import (
     get_status,
     get_search_stats,
     grant_premium,
+    ADMIN_ID,
     PAID_SEARCH_STARS,
     PAID_SEARCH_DAYS,
 )
@@ -55,7 +56,6 @@ from bot.partner import (
 )
 
 DONATE_TIERS = [50, 250, 500]
-ADMIN_ID = 847615855
 
 
 def _lang(context: ContextTypes.DEFAULT_TYPE, user) -> str:
