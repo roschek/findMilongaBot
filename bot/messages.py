@@ -155,7 +155,7 @@ MSG: dict[str, dict[str, str]] = {
         "paywall_thanks": "✅ Безлимит открыт на 24 часа!\nИщу в <b>{city}</b>…",
         "paywall_unlocked": "✅ Безлимит открыт на 24 часа! Отправьте город для поиска.",
         "rate_limit": (
-            "⏳ Вы использовали все {limit} бесплатных поиска сегодня.\n\n"
+            "⏳ Ваш единственный бесплатный поиск уже использован.\n\n"
             "Откройте безлимит на 24 часа за {stars} ⭐."
         ),
         "premium_granted": (
@@ -261,7 +261,7 @@ MSG: dict[str, dict[str, str]] = {
         "paywall_thanks": "✅ הגישה נפתחה ל-24 שעות!\nמחפש ב-<b>{city}</b>…",
         "paywall_unlocked": "✅ הגישה נפתחה ל-24 שעות! שלח שם עיר לחיפוש.",
         "rate_limit": (
-            "⏳ השתמשת בכל {limit} החיפושים החינמיים של היום.\n\n"
+            "⏳ החיפוש החינמי היחיד שלך כבר נוצל.\n\n"
             "פתח חיפוש ללא הגבלה ל-24 שעות תמורת {stars} ⭐."
         ),
         "premium_granted": (
@@ -367,7 +367,7 @@ MSG: dict[str, dict[str, str]] = {
         "paywall_thanks": "✅ ¡Acceso ilimitado desbloqueado por 24 horas!\nBuscando en <b>{city}</b>…",
         "paywall_unlocked": "✅ ¡Acceso ilimitado desbloqueado por 24 horas! Envíame una ciudad para buscar.",
         "rate_limit": (
-            "⏳ Has usado las {limit} búsquedas gratuitas de hoy.\n\n"
+            "⏳ Ya usaste tu única búsqueda de prueba gratuita.\n\n"
             "Desbloquea búsquedas ilimitadas por 24 horas por {stars} ⭐."
         ),
         "premium_granted": (
