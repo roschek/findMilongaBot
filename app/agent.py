@@ -64,7 +64,7 @@ async def _normalize_city(client: genai.Client, city_input: str) -> tuple[str, b
     Uses Gemini to canonicalize city names across languages and spellings.
     """
     response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash-lite",
+        model="gemini-3.1-flash-lite",
         contents=(
             f"What is the canonical English name of the city or town '{city_input}'?\n"
             f"If it is a real place but small (under 300k population or unlikely to have an active tango scene), "
@@ -84,7 +84,7 @@ async def _normalize_city(client: genai.Client, city_input: str) -> tuple[str, b
 async def _search_phase(client: genai.Client, city: str, date: str) -> list[str]:
     """Use Gemini + Google Search to find relevant URLs."""
     response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash",
         contents=(
             f"Find 15 URLs of websites with tango milonga and practica schedules and calendars "
             f"for {city}. Include local tango association sites, event calendars, and tango portals. "
